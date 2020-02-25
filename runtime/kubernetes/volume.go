@@ -11,12 +11,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/go-vela/types/pipeline"
+
+	"github.com/sirupsen/logrus"
 )
 
 // CreateVolume creates the pipeline volume.
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
-	var namespace string
-
 	pod := &v1.Pod{
 		TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		ObjectMeta: metav1.ObjectMeta{Name: "test-pod"},
@@ -44,10 +44,14 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 		},
 	}
 
-	_, err := c.Runtime.CoreV1().Pods(namespace).Create(pod)
+	logrus.Infof("Creating pod %s", pod.ObjectMeta.Name)
+
+	pod, err := c.Runtime.CoreV1().Pods("docker").Create(pod)
 	if err != nil {
 		return err
 	}
+
+	logrus.Infof("Pod created: %+v", pod)
 
 	return nil
 }
