@@ -5,9 +5,6 @@
 package kubernetes
 
 import (
-	"flag"
-	"path/filepath"
-
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -22,13 +19,9 @@ type client struct {
 func New(path string) (*client, error) {
 
 	// kubeconfig is provided use out of cluster config option
-	if len(path) != 0 {
-
-		kubeconfig := flag.String("kubeconfig", filepath.Join(path, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		flag.Parse()
-
+	if len(path) > 0 {
 		// use the current context in kubeconfig
-		config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+		config, err := clientcmd.BuildConfigFromFlags("", path)
 		if err != nil {
 			return nil, err
 		}

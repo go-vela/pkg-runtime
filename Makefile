@@ -36,7 +36,9 @@ binary-build:
 
 docker-run:
 
-	release/vela-runtime --help
+	release/vela-runtime \
+		--log.level trace \
+		--runtime.driver docker
 
 ############################################
 #####          Kubernetes Run          #####
@@ -44,4 +46,7 @@ docker-run:
 
 kubernetes-run:
 
-	release/vela-runtime --help
+	release/vela-runtime \
+		--log.level trace \
+		--runtime.driver kubernetes \
+		--runtime.path ~/.kube/config

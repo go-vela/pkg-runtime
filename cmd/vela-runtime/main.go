@@ -40,7 +40,7 @@ func main() {
 	app.Flags = []cli.Flag{
 
 		cli.StringFlag{
-			EnvVar: "PACKAGE_LOG_LEVEL,VELA_LOG_LEVEL,RUNTIME_LOG_LEVEL",
+			EnvVar: "VELA_LOG_LEVEL,RUNTIME_LOG_LEVEL",
 			Name:   "log.level",
 			Usage:  "set log level - options: (trace|debug|info|warn|error|fatal|panic)",
 			Value:  "info",
@@ -49,12 +49,12 @@ func main() {
 		// Runtime Flags
 
 		cli.StringFlag{
-			EnvVar: "PACKAGE_RUNTIME_DRIVER,VELA_RUNTIME_DRIVER,RUNTIME_DRIVER",
+			EnvVar: "VELA_RUNTIME_DRIVER,RUNTIME_DRIVER",
 			Name:   "runtime.driver",
 			Usage:  "name of runtime driver to use",
 		},
 		cli.StringFlag{
-			EnvVar: "PACKAGE_RUNTIME_PATH,VELA_RUNTIME_PATH,RUNTIME_PATH",
+			EnvVar: "VELA_RUNTIME_PATH,RUNTIME_PATH,KUBECONFIG",
 			Name:   "runtime.path",
 			Usage:  "path to runtime configuration file",
 		},

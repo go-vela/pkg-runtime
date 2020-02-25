@@ -46,6 +46,8 @@ func run(c *cli.Context) error {
 		logrus.Fatal(err)
 	}
 
+	logrus.Infof("Creating runtime volume")
+
 	err = runtime.CreateVolume(ctx, pipeline)
 	if err != nil {
 		logrus.Fatal(err)
