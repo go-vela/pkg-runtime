@@ -7,7 +7,14 @@ package main
 import (
 	"fmt"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/go-vela/pkg-runtime/runtime"
+	"github.com/go-vela/pkg-runtime/runtime/docker"
+	"github.com/go-vela/pkg-runtime/runtime/kubernetes"
+
+	"github.com/go-vela/types/constants"
+
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
 )
 
 func setupRuntime(c *cli.Context) (runtime.Engine, error) {
@@ -32,5 +39,5 @@ func setupDocker(c *cli.Context) (runtime.Engine, error) {
 // helper function to setup the Docker runtime from the CLI arguments.
 func setupKubernetes(c *cli.Context) (runtime.Engine, error) {
 	logrus.Tracef("Creating %s runtime client from CLI configuration", constants.DriverKubernetes)
-	return kubernetes.New(c.String("runtime-path"))
+	return kubernetes.New(c.String("runtime.path"))
 }

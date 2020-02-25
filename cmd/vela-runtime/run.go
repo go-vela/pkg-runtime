@@ -6,8 +6,8 @@ package main
 
 import (
 	"context"
-	"flag"
-	"os"
+
+	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -38,11 +38,6 @@ func run(c *cli.Context) error {
 	}
 
 	// setup types
-	path := os.Getenv("KUBECONFIG")
-	set := flag.NewFlagSet("test", 0)
-	set.String("runtime-driver", constants.DriverKubernetes, "doc")
-	set.String("runtime-path", path, "doc")
-	c := cli.NewContext(nil, set, nil)
 	ctx := context.Background()
 	pipeline := &pipeline.Build{}
 

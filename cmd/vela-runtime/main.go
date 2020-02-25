@@ -45,6 +45,19 @@ func main() {
 			Usage:  "set log level - options: (trace|debug|info|warn|error|fatal|panic)",
 			Value:  "info",
 		},
+
+		// Runtime Flags
+
+		cli.StringFlag{
+			EnvVar: "PACKAGE_RUNTIME_DRIVER,VELA_RUNTIME_DRIVER,RUNTIME_DRIVER",
+			Name:   "runtime.driver",
+			Usage:  "name of runtime driver to use",
+		},
+		cli.StringFlag{
+			EnvVar: "PACKAGE_RUNTIME_PATH,VELA_RUNTIME_PATH,RUNTIME_PATH",
+			Name:   "runtime.path",
+			Usage:  "path to runtime configuration file",
+		},
 	}
 
 	err := app.Run(os.Args)
