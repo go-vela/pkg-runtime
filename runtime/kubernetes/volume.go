@@ -6,62 +6,43 @@ package kubernetes
 
 import (
 	"context"
+	"encoding/json"
 
 	"k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/go-vela/types/pipeline"
-
-	"github.com/sirupsen/logrus"
 )
 
 // CreateVolume creates the pipeline volume.
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
-	pod := &v1.Pod{
-		TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
-		ObjectMeta: metav1.ObjectMeta{Name: "test-pod"},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  "test-container",
-					Image: "k8s.gcr.io/test-webserver",
-					VolumeMounts: []v1.VolumeMount{
-						{
-							Name:      "cache-volume",
-							MountPath: "/cache",
-						},
-					},
-				},
-			},
-			Volumes: []v1.Volume{
-				{
-					Name: "cache-volume",
-					VolumeSource: v1.VolumeSource{
-						EmptyDir: &v1.EmptyDirVolumeSource{},
-					},
-				},
-			},
+	volume := v1.Volume{
+		Name: "cache-volume",
+		VolumeSource: v1.VolumeSource{
+			EmptyDir: &v1.EmptyDirVolumeSource{},
 		},
 	}
 
-	logrus.Infof("Creating pod %s", pod.ObjectMeta.Name)
-
-	pod, err := c.Runtime.CoreV1().Pods("docker").Create(pod)
-	if err != nil {
-		return err
-	}
-
-	logrus.Infof("Pod created: %+v", pod)
+	c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, volume)
 
 	return nil
 }
 
 // InspectVolume inspects the pipeline volume.
 func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, error) {
-	return nil, nil
+	bytes, err := json.Marshal(c.Pod.Spec.Volumes)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
 }
 
 // RemoveVolume deletes the pipeline volume.
+//
+// TODO: research this
+//
+// currently this is a no-op because in Kubernetes the
+// volume lives and dies with the pod it's attached to
 func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	return nil
 }
