@@ -21,10 +21,44 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 		Hostnames: []string{},
 	}
 
+	// iterate through all services in the pipeline
+	for _, service := range b.Services {
+		// create the host entry for the pod container aliases
+		host := fmt.Sprintf("%s.local", service.Name)
+
+		// add the host entry to the pod container aliases
+		network.Hostnames = append(network.Hostnames, host)
+	}
+
+	// iterate through all steps in the pipeline
 	for _, step := range b.Steps {
+		// skip all steps not running in detached mode
+		if !step.Detach {
+			continue
+		}
+
+		// create the host entry for the pod container aliases
 		host := fmt.Sprintf("%s.local", step.Name)
 
+		// add the host entry to the pod container aliases
 		network.Hostnames = append(network.Hostnames, host)
+	}
+
+	// iterate through all stages in the pipeline
+	for _, stage := range b.Stages {
+		// iterate through all steps in each stage
+		for _, step := range stage.Steps {
+			// skip all steps not running in detached mode
+			if !step.Detach {
+				continue
+			}
+
+			// create the host entry for the pod container aliases
+			host := fmt.Sprintf("%s.local", step.Name)
+
+			// add the host entry to the pod container aliases
+			network.Hostnames = append(network.Hostnames, host)
+		}
 	}
 
 	c.Pod.Spec.HostAliases = append(c.Pod.Spec.HostAliases, network)

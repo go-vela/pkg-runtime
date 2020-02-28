@@ -16,7 +16,7 @@ import (
 // CreateVolume creates the pipeline volume.
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	volume := v1.Volume{
-		Name: "cache-volume",
+		Name: b.ID,
 		VolumeSource: v1.VolumeSource{
 			EmptyDir: &v1.EmptyDirVolumeSource{},
 		},

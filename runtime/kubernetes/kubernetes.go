@@ -6,6 +6,7 @@ package kubernetes
 
 import (
 	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -43,7 +44,9 @@ func New(path string) (*client, error) {
 	// create the client object
 	c := &client{
 		Runtime: r,
-		Pod:     new(v1.Pod),
+		Pod: &v1.Pod{
+			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
+		},
 	}
 
 	return c, nil
