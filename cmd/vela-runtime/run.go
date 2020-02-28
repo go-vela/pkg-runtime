@@ -39,7 +39,20 @@ func run(c *cli.Context) error {
 
 	// setup types
 	ctx := context.Background()
-	pipeline := &pipeline.Build{}
+	p := &pipeline.Build{
+		ID: "go-vela-pkg-runtime-1",
+		Steps: pipeline.ContainerSlice{
+			{
+				ID:          "step-go-vela-pkg-runtime-1-test",
+				Commands:    []string{"echo ${FOO}"},
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "alpine:latest",
+				Name:        "test",
+				Number:      1,
+				Pull:        true,
+			},
+		},
+	}
 
 	runtime, err := setupRuntime(c)
 	if err != nil {
@@ -48,7 +61,17 @@ func run(c *cli.Context) error {
 
 	logrus.Infof("Creating runtime volume")
 
-	err = runtime.CreateVolume(ctx, pipeline)
+	err = runtime.CreateVolume(ctx, p)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	err = runtime.CreateNetwork(ctx, p)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	err = runtime.RunContainer(ctx, p, p.Steps[0])
 	if err != nil {
 		logrus.Fatal(err)
 	}
