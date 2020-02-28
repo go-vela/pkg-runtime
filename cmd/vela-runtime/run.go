@@ -7,8 +7,6 @@ package main
 import (
 	"context"
 
-	"github.com/go-vela/types/pipeline"
-
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
@@ -37,40 +35,40 @@ func run(c *cli.Context) error {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
 
-	// setup types
-	ctx := context.Background()
-	p := &pipeline.Build{
-		ID: "go-vela-pkg-runtime-1",
-		Steps: pipeline.ContainerSlice{
-			{
-				ID:          "step-go-vela-pkg-runtime-1-test",
-				Commands:    []string{"echo ${FOO}"},
-				Environment: map[string]string{"FOO": "bar"},
-				Image:       "alpine:latest",
-				Name:        "test",
-				Number:      1,
-				Pull:        true,
-			},
-		},
+	// setup the compiler
+	compiler, err := setupCompiler(c)
+	if err != nil {
+		logrus.Fatal(err)
 	}
 
+	// setup the pipeline
+	p, err := setupPipeline(c, compiler)
+	if err != nil {
+		return err
+	}
+
+	// setup the runtime
 	runtime, err := setupRuntime(c)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	logrus.Infof("Creating runtime volume")
+	// setup the context
+	ctx := context.Background()
 
+	logrus.Infof("Creating runtime volume")
 	err = runtime.CreateVolume(ctx, p)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
+	logrus.Infof("Creating runtime network")
 	err = runtime.CreateNetwork(ctx, p)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
+	logrus.Infof("Creating runtime container")
 	err = runtime.RunContainer(ctx, p, p.Steps[0])
 	if err != nil {
 		logrus.Fatal(err)
