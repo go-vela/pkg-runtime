@@ -14,6 +14,7 @@ import (
 
 type client struct {
 	Runtime *kubernetes.Clientset
+	RawPod  *v1.Pod
 	Pod     *v1.Pod
 }
 
@@ -47,6 +48,7 @@ func New(path string) (*client, error) {
 		Pod: &v1.Pod{
 			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		},
+		RawPod: new(v1.Pod),
 	}
 
 	return c, nil

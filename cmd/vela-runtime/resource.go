@@ -38,8 +38,8 @@ func setupBuild() *library.Build {
 	b.SetEmail("vela@target.com")
 	b.SetLink("")
 	b.SetBranch("master")
-	b.SetRef("")
-	b.SetBaseRef("refs/heads/master")
+	b.SetRef("refs/heads/master")
+	b.SetBaseRef("")
 
 	return b
 }

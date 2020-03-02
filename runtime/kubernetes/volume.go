@@ -11,10 +11,14 @@ import (
 	"k8s.io/api/core/v1"
 
 	"github.com/go-vela/types/pipeline"
+
+	"github.com/sirupsen/logrus"
 )
 
 // CreateVolume creates the pipeline volume.
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
+	logrus.Tracef("creating volume for pipeline %s", b.ID)
+
 	volume := v1.Volume{
 		Name: b.ID,
 		VolumeSource: v1.VolumeSource{
@@ -29,6 +33,8 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 
 // InspectVolume inspects the pipeline volume.
 func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, error) {
+	logrus.Tracef("inspecting volume for pipeline %s", b.ID)
+
 	bytes, err := json.Marshal(c.Pod.Spec.Volumes)
 	if err != nil {
 		return nil, err

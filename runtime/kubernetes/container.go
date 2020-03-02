@@ -6,16 +6,21 @@ package kubernetes
 
 import (
 	"context"
-	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"io"
+	"time"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
 )
+
+const pattern = `[{ "op": "add", "path": "/spec/containers", "value": %s }]`
 
 // InspectContainer inspects the pipeline container.
 func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) error {
@@ -29,28 +34,92 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 
 // RunContainer creates and start the pipeline container.
 func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipeline.Container) error {
-	// TODO: do something with this
-	c.Pod.ObjectMeta = metav1.ObjectMeta{Name: b.ID}
+	logrus.Tracef("running container %s for pipeline %s", ctn.Name, b.ID)
 
+	// TODO: remove this probably
+	var err error
+
+	// TODO: do something with this
+	if len(c.Pod.ObjectMeta.Name) == 0 {
+		// TODO: do something with this
+		c.Pod.ObjectMeta = metav1.ObjectMeta{Name: b.ID}
+	}
+
+	c.Pod.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{
+		{
+			Name:      b.ID,
+			MountPath: "/home",
+		},
+	}
+
+	// sleep for 3 seconds
+	time.Sleep(3 * time.Second)
+
+	// check if pod is already created
+	if len(c.RawPod.ObjectMeta.UID) == 0 {
+		// send API call to create the pod
+		logrus.Infof("Creating pod %s", c.Pod.ObjectMeta.Name)
+		c.RawPod, err = c.Runtime.CoreV1().Pods("docker").Create(c.Pod)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// logrus.Infof("Updating pod %s", c.Pod.ObjectMeta.Name)
+	// // send API call to update the pod
+	// c.RawPod, err = c.Runtime.CoreV1().Pods("docker").Update(c.Pod)
+	// if err != nil {
+	// 	return err
+	// }
+	// logrus.Infof("Pod updated: %+v", c.RawPod)
+
+	logrus.Infof("Marshaling container %s for pod", ctn.Name)
+	bytes, err := json.Marshal(c.Pod.Spec.Containers)
+	if err != nil {
+		return err
+	}
+
+	test := fmt.Sprintf(pattern, string(bytes))
+
+	fmt.Println("Patch pattern: ", test)
+
+	logrus.Infof("Patching pod %s", c.Pod.ObjectMeta.Name)
+	// send API call to update the pod
+	c.RawPod, err = c.Runtime.CoreV1().Pods("docker").Patch(
+		b.ID,
+		types.JSONPatchType,
+		[]byte(test),
+		"",
+	)
+	if err != nil {
+		return err
+	}
+	logrus.Infof("Pod patched: %+v", c.RawPod)
+
+	return nil
+}
+
+// SetupContainer pulls the image for the pipeline container.
+func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
+	logrus.Tracef("setting up container %s", ctn.Name)
+
+	logrus.Debugf("parsing image for container %s", ctn.Name)
 	// parse image from container
 	image, err := parseImage(ctn.Image)
 	if err != nil {
 		return err
 	}
 
+	logrus.Tracef("creating configuration for container %s", ctn.Name)
 	container := v1.Container{
-		Name:      ctn.ID,
-		Image:     image,
-		Env:       []v1.EnvVar{},
-		Stdin:     false,
-		StdinOnce: false,
-		TTY:       false,
-		VolumeMounts: []v1.VolumeMount{
-			{
-				Name:      b.ID,
-				MountPath: "/home",
-			},
-		},
+		Name:       ctn.ID,
+		Image:      image,
+		Env:        []v1.EnvVar{},
+		Stdin:      false,
+		StdinOnce:  false,
+		TTY:        false,
 		WorkingDir: ctn.Directory,
 	}
 
@@ -63,53 +132,22 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 		}
 	}
 
-	// // check if the entrypoint is provided
-	// if len(ctn.Entrypoint) > 0 {
-	// 	// add entrypoint to container config
-	// 	container.Command = ctn.Entrypoint
-	// }
-
-	// // check if the commands are provided
-	// if len(ctn.Commands) > 0 {
-	// 	// add commands to container config
-	// 	container.Command = ctn.Commands
-	// }
-
-	script := `
-echo $ echo ${FOO}
-echo ${FOO}
-`
-
-	baseScript := base64.StdEncoding.EncodeToString([]byte(script))
-
-	// set the environment variables for the step
-	container.Env = append(container.Env,
-		v1.EnvVar{Name: "VELA_BUILD_SCRIPT", Value: baseScript},
-	)
-	container.Env = append(container.Env,
-		v1.EnvVar{Name: "HOME", Value: "/root"},
-	)
-	container.Env = append(container.Env,
-		v1.EnvVar{Name: "SHELL", Value: "/bin/sh"},
-	)
-
-	container.Command = []string{"/bin/sh", "-c"}
-	container.Args = []string{"echo $VELA_BUILD_SCRIPT | base64 -d | /bin/sh -e"}
-
-	c.Pod.Spec.Containers = append(c.Pod.Spec.Containers, container)
-
-	logrus.Infof("Creating pod %s", c.Pod.ObjectMeta.Name)
-	pod, err := c.Runtime.CoreV1().Pods("docker").Create(c.Pod)
-	if err != nil {
-		return err
+	// check if the entrypoint is provided
+	if len(ctn.Entrypoint) > 0 {
+		// add entrypoint to container config
+		container.Command = ctn.Entrypoint
 	}
-	logrus.Infof("Pod created: %+v", pod)
 
-	return nil
-}
+	// check if the commands are provided
+	if len(ctn.Commands) > 0 {
+		// add commands to container config
+		container.Args = ctn.Commands
+	}
 
-// SetupContainer pulls the image for the pipeline container.
-func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
+	c.Pod.Spec.RestartPolicy = v1.RestartPolicyNever
+	c.Pod.Spec.Containers = []v1.Container{container}
+	// c.Pod.Spec.Containers = append(c.Pod.Spec.Containers, container)
+
 	return nil
 }
 
