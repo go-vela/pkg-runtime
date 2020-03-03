@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"time"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,7 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const pattern = `[{ "op": "add", "path": "/spec/containers", "value": %s }]`
+const pattern = `[{ "op": "add", "path": "/spec/containers/%d/image", "value": %s }]`
 
 // InspectContainer inspects the pipeline container.
 func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) error {
@@ -36,8 +35,14 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipeline.Container) error {
 	logrus.Tracef("running container %s for pipeline %s", ctn.Name, b.ID)
 
-	// TODO: remove this probably
-	var err error
+	number := ctn.Number - 2
+
+	logrus.Debugf("parsing image for container %s", ctn.Name)
+	// parse image from container
+	image, err := parseImage(ctn.Image)
+	if err != nil {
+		return err
+	}
 
 	// TODO: do something with this
 	if len(c.Pod.ObjectMeta.Name) == 0 {
@@ -45,15 +50,13 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 		c.Pod.ObjectMeta = metav1.ObjectMeta{Name: b.ID}
 	}
 
-	c.Pod.Spec.Containers[0].VolumeMounts = []v1.VolumeMount{
+	c.Pod.Spec.Containers[number].Image = image
+	c.Pod.Spec.Containers[number].VolumeMounts = []v1.VolumeMount{
 		{
 			Name:      b.ID,
 			MountPath: "/home",
 		},
 	}
-
-	// sleep for 3 seconds
-	time.Sleep(3 * time.Second)
 
 	// check if pod is already created
 	if len(c.RawPod.ObjectMeta.UID) == 0 {
@@ -76,12 +79,12 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 	// logrus.Infof("Pod updated: %+v", c.RawPod)
 
 	logrus.Infof("Marshaling container %s for pod", ctn.Name)
-	bytes, err := json.Marshal(c.Pod.Spec.Containers)
+	bytes, err := json.Marshal(c.Pod.Spec.Containers[number].Image)
 	if err != nil {
 		return err
 	}
 
-	test := fmt.Sprintf(pattern, string(bytes))
+	test := fmt.Sprintf(pattern, number, string(bytes))
 
 	fmt.Println("Patch pattern: ", test)
 
@@ -105,17 +108,11 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
 	logrus.Tracef("setting up container %s", ctn.Name)
 
-	logrus.Debugf("parsing image for container %s", ctn.Name)
-	// parse image from container
-	image, err := parseImage(ctn.Image)
-	if err != nil {
-		return err
-	}
-
 	logrus.Tracef("creating configuration for container %s", ctn.Name)
 	container := v1.Container{
-		Name:       ctn.ID,
-		Image:      image,
+		Name: ctn.ID,
+		// Image:      image,
+		Image:      "docker.io/kubernetes/pause:latest",
 		Env:        []v1.EnvVar{},
 		Stdin:      false,
 		StdinOnce:  false,
@@ -145,8 +142,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	}
 
 	c.Pod.Spec.RestartPolicy = v1.RestartPolicyNever
-	c.Pod.Spec.Containers = []v1.Container{container}
-	// c.Pod.Spec.Containers = append(c.Pod.Spec.Containers, container)
+	// c.Pod.Spec.Containers = []v1.Container{container}
+	c.Pod.Spec.Containers = append(c.Pod.Spec.Containers, container)
 
 	return nil
 }

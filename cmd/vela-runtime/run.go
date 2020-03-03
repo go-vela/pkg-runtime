@@ -79,6 +79,13 @@ func run(c *cli.Context) error {
 		if err != nil {
 			logrus.Fatal(err)
 		}
+	}
+
+	for _, step := range p.Steps {
+		// TODO: remove hardcoded reference
+		if step.Name == "init" {
+			continue
+		}
 
 		logrus.Infof("Creating runtime container for step %s", step.Name)
 		err = runtime.RunContainer(ctx, p, step)
