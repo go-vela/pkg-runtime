@@ -19,10 +19,10 @@ steps:
     image: alpine:latest
     pull: true
 
-  - name: teesstt
-    commands:
-      - echo ${BAR}
-    environment:
-      BAR: baz
-    image: alpine:latest
-    pull: true
+  # - name: teesstt
+  #   commands:
+  #     - echo ${BAR}
+  #   environment:
+  #     BAR: baz
+  #   image: alpine:latest
+  #   pull: true

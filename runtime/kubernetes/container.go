@@ -6,14 +6,11 @@ package kubernetes
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"io"
 	"strings"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/go-vela/types/pipeline"
 
@@ -79,27 +76,27 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 	// }
 	// logrus.Infof("Pod updated: %+v", c.RawPod)
 
-	logrus.Infof("Marshaling container %s for pod", ctn.Name)
-	bytes, err := json.Marshal(c.Pod.Spec.Containers[number].Image)
-	if err != nil {
-		return err
-	}
-
-	test := fmt.Sprintf(pattern, number, string(bytes))
-
-	fmt.Println("Patch pattern: ", test)
-
-	logrus.Infof("Patching pod %s", c.Pod.ObjectMeta.Name)
-	// send API call to update the pod
-	c.RawPod, err = c.Runtime.CoreV1().Pods("docker").Patch(
-		b.ID,
-		types.JSONPatchType,
-		[]byte(test),
-		"",
-	)
-	if err != nil {
-		return err
-	}
+	// logrus.Infof("Marshaling container %s for pod", ctn.Name)
+	// bytes, err := json.Marshal(c.Pod.Spec.Containers[number].Image)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// test := fmt.Sprintf(pattern, number, string(bytes))
+	//
+	// fmt.Println("Patch pattern: ", test)
+	//
+	// logrus.Infof("Patching pod %s", c.Pod.ObjectMeta.Name)
+	// // send API call to update the pod
+	// c.RawPod, err = c.Runtime.CoreV1().Pods("docker").Patch(
+	// 	b.ID,
+	// 	types.JSONPatchType,
+	// 	[]byte(test),
+	// 	"",
+	// )
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -130,16 +127,16 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		}
 	}
 
-	// check if the entrypoint is provided
-	if len(ctn.Entrypoint) > 0 {
-		// add entrypoint to container config
-		container.Command = ctn.Entrypoint
-
-		if strings.Contains(ctn.Image, "alpine") {
-			container.Command = []string{"/bin/sh"}
-			// container.Command = []string{}
-		}
-	}
+	// // check if the entrypoint is provided
+	// if len(ctn.Entrypoint) > 0 {
+	// 	// add entrypoint to container config
+	// 	container.Command = ctn.Entrypoint
+	//
+	// 	// if strings.Contains(ctn.Image, "alpine") {
+	// 	// 	container.Command = []string{"/bin/sh", "-c"}
+	// 	// 	container.Command = []string{}
+	// 	// }
+	// }
 
 	// check if the commands are provided
 	if len(ctn.Commands) > 0 {
@@ -147,7 +144,11 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		container.Args = ctn.Commands
 
 		if strings.Contains(ctn.Image, "alpine") {
-			container.Args = []string{"echo hello"}
+			container.Args = []string{
+				"/bin/sh",
+				"-c",
+				"echo $VELA_BUILD_SCRIPT | base64 -d | /bin/sh -e",
+			}
 			// container.Args = []string{}
 		}
 	}
