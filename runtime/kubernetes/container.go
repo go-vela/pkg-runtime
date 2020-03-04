@@ -6,18 +6,19 @@ package kubernetes
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"strings"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
 )
 
-const pattern = `[{ "op": "replace", "path": "/spec/containers/%d/image", "value": %s }]`
+const patchPattern = `[{ "op": "replace", "path": "/spec/containers/%d/image", "value": "%s" }]`
 
 // InspectContainer inspects the pipeline container.
 func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) error {
@@ -68,35 +69,20 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 		return nil
 	}
 
-	// logrus.Infof("Updating pod %s", c.Pod.ObjectMeta.Name)
-	// // send API call to update the pod
-	// c.RawPod, err = c.Runtime.CoreV1().Pods("docker").Update(c.Pod)
-	// if err != nil {
-	// 	return err
-	// }
-	// logrus.Infof("Pod updated: %+v", c.RawPod)
+	patch := fmt.Sprintf(patchPattern, number, c.Pod.Spec.Containers[number].Image)
+	logrus.Debugf("patch: %s", patch)
 
-	// logrus.Infof("Marshaling container %s for pod", ctn.Name)
-	// bytes, err := json.Marshal(c.Pod.Spec.Containers[number].Image)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// test := fmt.Sprintf(pattern, number, string(bytes))
-	//
-	// fmt.Println("Patch pattern: ", test)
-	//
-	// logrus.Infof("Patching pod %s", c.Pod.ObjectMeta.Name)
-	// // send API call to update the pod
-	// c.RawPod, err = c.Runtime.CoreV1().Pods("docker").Patch(
-	// 	b.ID,
-	// 	types.JSONPatchType,
-	// 	[]byte(test),
-	// 	"",
-	// )
-	// if err != nil {
-	// 	return err
-	// }
+	logrus.Infof("Patching pod %s", c.Pod.ObjectMeta.Name)
+	// send API call to update the pod
+	c.RawPod, err = c.Runtime.CoreV1().Pods("docker").Patch(
+		b.ID,
+		types.JSONPatchType,
+		[]byte(patch),
+		"",
+	)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -106,9 +92,15 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	logrus.Tracef("setting up container %s", ctn.Name)
 
 	logrus.Tracef("creating configuration for container %s", ctn.Name)
+
+	// create the container with the kubernetes/pause image.
+	//
+	// This is done due to the nature of how Kubernetes starts
+	// and executes the containers in the pod. Essentially it
+	// wants to execute all containers at once, where we want
+	// to periodically start containers based off the pipeline.
 	container := v1.Container{
-		Name: ctn.ID,
-		// Image:      image,
+		Name:            ctn.ID,
 		Image:           "docker.io/kubernetes/pause:latest",
 		Env:             []v1.EnvVar{},
 		Stdin:           false,
@@ -127,34 +119,19 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		}
 	}
 
-	// // check if the entrypoint is provided
-	// if len(ctn.Entrypoint) > 0 {
-	// 	// add entrypoint to container config
-	// 	container.Command = ctn.Entrypoint
-	//
-	// 	// if strings.Contains(ctn.Image, "alpine") {
-	// 	// 	container.Command = []string{"/bin/sh", "-c"}
-	// 	// 	container.Command = []string{}
-	// 	// }
-	// }
+	// check if the entrypoint is provided
+	if len(ctn.Entrypoint) > 0 {
+		// add entrypoint to container config
+		container.Args = ctn.Entrypoint
+	}
 
 	// check if the commands are provided
 	if len(ctn.Commands) > 0 {
 		// add commands to container config
-		container.Args = ctn.Commands
-
-		if strings.Contains(ctn.Image, "alpine") {
-			container.Args = []string{
-				"/bin/sh",
-				"-c",
-				"echo $VELA_BUILD_SCRIPT | base64 -d | /bin/sh -e",
-			}
-			// container.Args = []string{}
-		}
+		container.Args = append(container.Args, ctn.Commands...)
 	}
 
 	c.Pod.Spec.RestartPolicy = v1.RestartPolicyNever
-	// c.Pod.Spec.Containers = []v1.Container{container}
 	c.Pod.Spec.Containers = append(c.Pod.Spec.Containers, container)
 
 	return nil

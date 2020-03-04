@@ -88,8 +88,12 @@ func run(c *cli.Context) error {
 			continue
 		}
 
-		// sleep for 5 seconds
-		time.Sleep(5 * time.Second)
+		// sleep for 3 seconds
+		//
+		// TODO:
+		// remove this when we can tail the
+		// container and capture the logs
+		time.Sleep(3 * time.Second)
 
 		logrus.Infof("Creating runtime container for step %s", step.Name)
 		err = runtime.RunContainer(ctx, p, step)
