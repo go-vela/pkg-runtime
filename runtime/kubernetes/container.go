@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,7 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const pattern = `[{ "op": "add", "path": "/spec/containers/%d/image", "value": %s }]`
+const pattern = `[{ "op": "replace", "path": "/spec/containers/%d/image", "value": %s }]`
 
 // InspectContainer inspects the pipeline container.
 func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) error {
@@ -99,7 +100,6 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 	if err != nil {
 		return err
 	}
-	logrus.Infof("Pod patched: %+v", c.RawPod)
 
 	return nil
 }
@@ -112,12 +112,13 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	container := v1.Container{
 		Name: ctn.ID,
 		// Image:      image,
-		Image:      "docker.io/kubernetes/pause:latest",
-		Env:        []v1.EnvVar{},
-		Stdin:      false,
-		StdinOnce:  false,
-		TTY:        false,
-		WorkingDir: ctn.Directory,
+		Image:           "docker.io/kubernetes/pause:latest",
+		Env:             []v1.EnvVar{},
+		Stdin:           false,
+		StdinOnce:       false,
+		TTY:             false,
+		WorkingDir:      ctn.Directory,
+		ImagePullPolicy: v1.PullAlways,
 	}
 
 	// check if the environment is provided
@@ -133,12 +134,22 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	if len(ctn.Entrypoint) > 0 {
 		// add entrypoint to container config
 		container.Command = ctn.Entrypoint
+
+		if strings.Contains(ctn.Image, "alpine") {
+			container.Command = []string{"/bin/sh"}
+			// container.Command = []string{}
+		}
 	}
 
 	// check if the commands are provided
 	if len(ctn.Commands) > 0 {
 		// add commands to container config
 		container.Args = ctn.Commands
+
+		if strings.Contains(ctn.Image, "alpine") {
+			container.Args = []string{"echo hello"}
+			// container.Args = []string{}
+		}
 	}
 
 	c.Pod.Spec.RestartPolicy = v1.RestartPolicyNever

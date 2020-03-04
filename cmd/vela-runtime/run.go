@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -86,6 +87,9 @@ func run(c *cli.Context) error {
 		if step.Name == "init" {
 			continue
 		}
+
+		// sleep for 5 seconds
+		time.Sleep(5 * time.Second)
 
 		logrus.Infof("Creating runtime container for step %s", step.Name)
 		err = runtime.RunContainer(ctx, p, step)
