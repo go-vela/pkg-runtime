@@ -12,10 +12,14 @@ import (
 	"k8s.io/api/core/v1"
 
 	"github.com/go-vela/types/pipeline"
+
+	"github.com/sirupsen/logrus"
 )
 
 // CreateNetwork creates the pipeline network.
 func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
+	logrus.Tracef("creating network for pipeline %s", b.ID)
+
 	network := v1.HostAlias{
 		IP:        "127.0.0.1",
 		Hostnames: []string{},
@@ -68,6 +72,8 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 
 // InspectNetwork inspects the pipeline network.
 func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte, error) {
+	logrus.Tracef("inspecting network for pipeline %s", b.ID)
+
 	bytes, err := json.Marshal(c.Pod.Spec.HostAliases)
 	if err != nil {
 		return nil, err

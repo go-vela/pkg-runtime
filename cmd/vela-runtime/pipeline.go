@@ -5,6 +5,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/go-vela/compiler/compiler"
 
 	"github.com/go-vela/types/pipeline"
@@ -35,6 +37,12 @@ func setupPipeline(c *cli.Context, comp compiler.Engine) (*pipeline.Build, error
 		Compile(c.String("pipeline.config"))
 	if err != nil {
 		return nil, err
+	}
+
+	// sanitize pipeline
+	p.Sanitize(c.String("runtime.driver"))
+	if p == nil {
+		return nil, fmt.Errorf("unable to sanitize pipeline")
 	}
 
 	return p, nil

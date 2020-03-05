@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -68,10 +69,37 @@ func run(c *cli.Context) error {
 		logrus.Fatal(err)
 	}
 
-	logrus.Infof("Creating runtime container")
-	err = runtime.RunContainer(ctx, p, p.Steps[0])
-	if err != nil {
-		logrus.Fatal(err)
+	for _, step := range p.Steps {
+		// TODO: remove hardcoded reference
+		if step.Name == "init" {
+			continue
+		}
+
+		logrus.Infof("Setting up runtime container for step %s", step.Name)
+		err = runtime.SetupContainer(ctx, step)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	}
+
+	for _, step := range p.Steps {
+		// TODO: remove hardcoded reference
+		if step.Name == "init" {
+			continue
+		}
+
+		// sleep for 3 seconds
+		//
+		// TODO:
+		// remove this when we can tail the
+		// container and capture the logs
+		time.Sleep(3 * time.Second)
+
+		logrus.Infof("Creating runtime container for step %s", step.Name)
+		err = runtime.RunContainer(ctx, p, step)
+		if err != nil {
+			logrus.Fatal(err)
+		}
 	}
 
 	return nil
