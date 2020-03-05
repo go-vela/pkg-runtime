@@ -11,10 +11,24 @@ steps:
       remote: https://github.com/octocat/hello-world.git
       sha: 7fd1a60b01f91b314f59955a4e4d4e80d8edf11d
 
-  - name: test
+  # echo testing environment injections
+  - name: echo
     commands:
       - echo ${FOO}
     environment:
       FOO: bar
     image: alpine:latest
     pull: true
+
+  # sleep testing waiting step
+  - name: sleep
+    commands: | 
+      secs=10
+      while [ $secs -gt 0 ]; do
+         echo "$secs"
+         sleep 1
+         : $((secs--))
+      done
+    image: alpine:latest
+    pull: true
+

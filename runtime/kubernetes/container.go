@@ -8,8 +8,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -46,7 +47,10 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 	// TODO: do something with this
 	if len(c.Pod.ObjectMeta.Name) == 0 {
 		// TODO: do something with this
-		c.Pod.ObjectMeta = metav1.ObjectMeta{Name: b.ID}
+		c.Pod.ObjectMeta = metav1.ObjectMeta{
+			Name:   b.ID,
+			Labels: map[string]string{"pipeline": b.ID},
+		}
 	}
 
 	c.Pod.Spec.Containers[number].Image = image
@@ -144,5 +148,39 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 
 // WaitContainer blocks until the pipeline container completes.
 func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) error {
-	return nil
+	logrus.Tracef("waiting for container %s", ctn.Name)
+
+	r := c.Runtime
+
+	watcher, err := r.CoreV1().Pods("docker").Watch(metav1.ListOptions{LabelSelector: "pipeline=go-vela-pkg-runtime-1", Watch: true})
+	if err != nil {
+		return err
+	}
+
+	for {
+		e := <-watcher.ResultChan()
+
+		pod, ok := e.Object.(*v1.Pod)
+		if !ok {
+			return fmt.Errorf("unable to cast pod from watcher")
+		}
+
+		for _, cst := range pod.Status.ContainerStatuses {
+			// skip container if is it not the corret ID
+			if !strings.EqualFold(cst.Name, ctn.ID) {
+				continue
+			}
+
+			// skip container if it is not in a terminated sate
+			if cst.State.Terminated == nil {
+				continue
+			}
+
+			// Container exited
+			if strings.EqualFold(cst.State.Terminated.Reason, "Completed") {
+				// TODO: investigate constant for container state "Completed"
+				return nil
+			}
+		}
+	}
 }
