@@ -5,7 +5,9 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -92,6 +94,24 @@ func run(c *cli.Context) error {
 		if err != nil {
 			logrus.Fatal(err)
 		}
+
+		// time.Sleep(10 * time.Second)
+
+		// tail the logs of the container
+		// go func() {
+		logrus.Infof("Starting tail process for step %s", step.Name)
+		rc, err := runtime.TailContainer(ctx, step)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		defer rc.Close()
+
+		// create new scanner from the container output
+		scanner := bufio.NewScanner(rc)
+		for scanner.Scan() {
+			fmt.Println(string(scanner.Bytes()))
+		}
+		// }()
 
 		logrus.Infof("waiting for step %s", step.Name)
 		err = runtime.WaitContainer(ctx, step)

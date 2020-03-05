@@ -143,7 +143,89 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 
 // TailContainer captures the logs for the pipeline container.
 func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io.ReadCloser, error) {
-	return nil, nil
+	logrus.Tracef("tailing for container %s", ctn.Name)
+
+	r := c.Runtime
+
+	// running := false
+
+	// for {
+	// 	// check the status of the pod
+	// 	pod, err := r.CoreV1().Pods("docker").Get("go-vela-pkg-runtime-1", metav1.GetOptions{})
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	//  break out of loop if the pod is running
+	// 	for _, cst := range pod.Status.ContainerStatuses {
+	// 		// skip container if is it not the corret ID
+	// 		if !strings.EqualFold(cst.Name, ctn.ID) {
+	// 			continue
+	// 		}
+
+	// 		// Container exited
+	// 		if cst.State.Running != nil {
+	// 			running = true
+	// 		}
+	// 	}
+
+	// 	if running {
+	// 		break
+	// 	}
+	// }
+
+	watcher, err := r.CoreV1().Pods("docker").Watch(metav1.ListOptions{LabelSelector: "pipeline=go-vela-pkg-runtime-1", Watch: true})
+	if err != nil {
+		return nil, err
+	}
+
+	running := false
+
+	for {
+		e := <-watcher.ResultChan()
+
+		pod, ok := e.Object.(*v1.Pod)
+		if !ok {
+			return nil, fmt.Errorf("unable to cast pod from watcher")
+		}
+
+		if pod.Status.Phase != v1.PodRunning {
+			continue
+		}
+
+		for _, cst := range pod.Status.ContainerStatuses {
+			// skip container if is it not the corret ID
+			if !strings.EqualFold(cst.Name, ctn.ID) {
+				continue
+			}
+
+			// skip container if it is not in a terminated sate
+			fmt.Println("CONTAINER STATE: ", cst.State)
+			fmt.Println("CONTAINER NAME: ", cst.Name)
+			if cst.State.Running != nil || cst.State.Terminated != nil {
+				running = true
+				break
+			}
+		}
+
+		if running {
+			break
+		}
+	}
+
+	fmt.Println("CONTAINER ID: ", ctn.ID)
+	req := r.CoreV1().Pods("docker").GetLogs("go-vela-pkg-runtime-1", &v1.PodLogOptions{Container: ctn.ID, Follow: true})
+	if req == nil {
+		return nil, fmt.Errorf("unable able to get logs for container: %s", ctn.ID)
+	}
+
+	fmt.Println("MAKE LOGS REQUEST")
+	logs, err := req.Stream()
+	if err != nil {
+		return nil, err
+	}
+	// defer logs.Close()
+
+	return logs, nil
 }
 
 // WaitContainer blocks until the pipeline container completes.
@@ -177,7 +259,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 			}
 
 			// Container exited
-			if strings.EqualFold(cst.State.Terminated.Reason, "Completed") {
+			if len(cst.State.Terminated.Reason) > 0 {
 				// TODO: investigate constant for container state "Completed"
 				return nil
 			}
