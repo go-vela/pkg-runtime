@@ -6,7 +6,6 @@ package main
 
 import (
 	"context"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -88,15 +87,14 @@ func run(c *cli.Context) error {
 			continue
 		}
 
-		// sleep for 3 seconds
-		//
-		// TODO:
-		// remove this when we can tail the
-		// container and capture the logs
-		time.Sleep(3 * time.Second)
-
 		logrus.Infof("Creating runtime container for step %s", step.Name)
 		err = runtime.RunContainer(ctx, p, step)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+
+		logrus.Infof("waiting for step %s", step.Name)
+		err = runtime.WaitContainer(ctx, step)
 		if err != nil {
 			logrus.Fatal(err)
 		}
