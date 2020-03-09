@@ -23,10 +23,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const namespace = "docker"
-
-const patchPattern = `[{ "op": "replace", "path": "/spec/containers/%d/image", "value": "%s" }]`
-
 // InspectContainer inspects the pipeline container.
 func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) error {
 	return nil
@@ -39,7 +35,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 
 // RunContainer creates and start the pipeline container.
 func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipeline.Container) error {
-	logrus.Tracef("running container %s for pipeline %s", ctn.Name, b.ID)
+	logrus.Tracef("running container %s", ctn.ID)
 
 	// TODO: investigate way to move this logic
 	//
@@ -71,40 +67,32 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 		// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#RestartPolicy
 		c.Pod.Spec.RestartPolicy = v1.RestartPolicyNever
 
+		logrus.Infof("creating pod %s", c.Pod.ObjectMeta.Name)
 		// send API call to create the pod
-		logrus.Infof("Creating pod %s", c.Pod.ObjectMeta.Name)
-		_, err := c.Runtime.CoreV1().Pods(namespace).Create(c.Pod)
+		_, err := c.Runtime.CoreV1().Pods(c.Namespace).Create(c.Pod)
 		if err != nil {
 			return err
 		}
 	}
 
-	// capture the container number for the pod
-	//
-	// We subtract 2 from the original step number because
-	// we skip the "init" step that's automatically injected
-	// into every pipeline.
-	number := ctn.Number - 2
-
-	logrus.Debugf("parsing image for container %s", ctn.Name)
+	logrus.Debugf("parsing image for container %s", ctn.ID)
 	// parse image from step
 	image, err := parseImage(ctn.Image)
 	if err != nil {
 		return err
 	}
 
-	// set the image for the container to the parsed image
-	c.Pod.Spec.Containers[number].Image = image
+	// set the pod container image to the parsed step image
+	c.Pod.Spec.Containers[ctn.Number-2].Image = image
 
-	patch := fmt.Sprintf(patchPattern, number, c.Pod.Spec.Containers[number].Image)
-	logrus.Debugf("patch: %s", patch)
-
-	logrus.Infof("Patching pod %s", c.Pod.ObjectMeta.Name)
-	// send API call to patch the pod with the new image
-	_, err = c.Runtime.CoreV1().Pods(namespace).Patch(
-		b.ID,
-		types.JSONPatchType,
-		[]byte(patch),
+	logrus.Infof("patching image for container %s", ctn.ID)
+	// send API call to patch the pod with the new container image
+	//
+	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
+	_, err = c.Runtime.CoreV1().Pods(c.Namespace).Patch(
+		c.Pod.ObjectMeta.Name,
+		types.StrategicMergePatchType,
+		[]byte(fmt.Sprintf(imagePatch, ctn.ID, image)),
 		"",
 	)
 	if err != nil {
@@ -116,7 +104,7 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 
 // SetupContainer pulls the image for the pipeline container.
 func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("setting up container %s", ctn.Name)
+	logrus.Tracef("setting up for container %s", ctn.Name)
 
 	// create the container object for the pod
 	//
@@ -165,6 +153,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	}
 
 	// add the container definition to the pod spec
+	//
+	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
 	c.Pod.Spec.Containers = append(c.Pod.Spec.Containers, container)
 
 	return nil
@@ -172,7 +162,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 
 // TailContainer captures the logs for the pipeline container.
 func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io.ReadCloser, error) {
-	logrus.Tracef("tailing step %s", ctn.Name)
+	logrus.Tracef("tailing output for container %s", ctn.ID)
 
 	// create object to store container logs
 	var logs io.ReadCloser
@@ -196,11 +186,11 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		// ->
 		// https://pkg.go.dev/k8s.io/client-go/rest?tab=doc#Request.Stream
 		stream, err := c.Runtime.CoreV1().
-			Pods(namespace).
+			Pods(c.Namespace).
 			GetLogs(c.Pod.ObjectMeta.Name, opts).
 			Stream()
 		if err != nil {
-			logrus.Errorf("unable to capture logs for container %s: %v", ctn.ID, err)
+			logrus.Errorf("%v", err)
 			return false, nil
 		}
 
@@ -237,7 +227,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		Cap:      1 * time.Minute,
 	}
 
-	logrus.Tracef("capturing logs for step %s with exponential backoff", ctn.Name)
+	logrus.Tracef("capturing logs with exponential backoff for container %s", ctn.ID)
 	// perform the function to capture logs with periodic backoff
 	//
 	// https://pkg.go.dev/k8s.io/apimachinery/pkg/util/wait?tab=doc#ExponentialBackoff
@@ -251,7 +241,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 
 // WaitContainer blocks until the pipeline container completes.
 func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("waiting for container %s", ctn.Name)
+	logrus.Tracef("waiting for container %s", ctn.ID)
 
 	// create label selector for watching the pod
 	selector := fmt.Sprintf("pipeline=%s", c.Pod.ObjectMeta.Name)
@@ -267,7 +257,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
 	// ->
 	// https://pkg.go.dev/k8s.io/apimachinery/pkg/watch?tab=doc#Interface
-	watch, err := c.Runtime.CoreV1().Pods(namespace).Watch(opts)
+	watch, err := c.Runtime.CoreV1().Pods(c.Namespace).Watch(opts)
 	if err != nil {
 		return err
 	}
