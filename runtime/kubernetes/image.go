@@ -12,6 +12,19 @@ import (
 	"github.com/docker/distribution/reference"
 )
 
+const imagePatch = `
+{
+  "spec": {
+    "containers": [
+      {
+        "name": "%s",
+        "image": "%s"
+      }
+    ]
+  }
+}
+`
+
 // InspectImage inspects the pipeline container image.
 func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]byte, error) {
 	return nil, nil

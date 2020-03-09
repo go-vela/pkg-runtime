@@ -19,6 +19,21 @@ import (
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("creating volume for pipeline %s", b.ID)
 
+	// create the volume for the pod
+	//
+	// This is done due to the nature of how volumes works inside
+	// the pod. Each container inside the pod can access and use
+	// the same volume. This allows them to share this volume
+	// throughout the life of the pod. However, to keep the
+	// runtime behavior consistent, Vela uses an emtpyDir volume
+	// because that volume only exists for the life
+	// of the pod.
+	//
+	// More info:
+	//   * https://kubernetes.io/docs/concepts/workloads/pods/pod/
+	//   * https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+	//
+	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#Volume
 	volume := v1.Volume{
 		Name: b.ID,
 		VolumeSource: v1.VolumeSource{
@@ -26,6 +41,9 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 		},
 	}
 
+	// add the volume definition to the pod spec
+	//
+	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
 	c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, volume)
 
 	return nil
@@ -35,6 +53,7 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, error) {
 	logrus.Tracef("inspecting volume for pipeline %s", b.ID)
 
+	// marshal the volume information from the pod
 	bytes, err := json.Marshal(c.Pod.Spec.Volumes)
 	if err != nil {
 		return nil, err
@@ -47,8 +66,8 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 //
 // TODO: research this
 //
-// currently this is a no-op because in Kubernetes the
-// volume lives and dies with the pod it's attached to
+// Currently, this is a no-op because in Kubernetes the
+// network lives and dies with the pod it's attached to.
 func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	return nil
 }

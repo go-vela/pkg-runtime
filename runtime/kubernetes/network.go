@@ -20,6 +20,19 @@ import (
 func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("creating network for pipeline %s", b.ID)
 
+	// create the network for the pod
+	//
+	// This is done due to the nature of how networking works inside the
+	// pod. Each container inside the pod shares the same network IP and
+	// port space. This allows them to communicate with each other via
+	// localhost. However, to keep the runtime behavior consistent,
+	// Vela adds DNS entries for each container that requires it.
+	//
+	// More info:
+	//   * https://kubernetes.io/docs/concepts/workloads/pods/pod/
+	//   * https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+	//
+	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#HostAlias
 	network := v1.HostAlias{
 		IP:        "127.0.0.1",
 		Hostnames: []string{},
@@ -65,6 +78,9 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 		}
 	}
 
+	// add the network definition to the pod spec
+	//
+	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
 	c.Pod.Spec.HostAliases = append(c.Pod.Spec.HostAliases, network)
 
 	return nil
@@ -74,6 +90,7 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte, error) {
 	logrus.Tracef("inspecting network for pipeline %s", b.ID)
 
+	// marshal the network information from the pod
 	bytes, err := json.Marshal(c.Pod.Spec.HostAliases)
 	if err != nil {
 		return nil, err
@@ -86,8 +103,8 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 //
 // TODO: research this
 //
-// currently this is a no-op because in Kubernetes the
-// network lives and dies with the pod it's attached to
+// Currently, this is a no-op because in Kubernetes the
+// network lives and dies with the pod it's attached to.
 func (c *client) RemoveNetwork(ctx context.Context, b *pipeline.Build) error {
 	return nil
 }

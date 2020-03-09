@@ -13,8 +13,9 @@ import (
 )
 
 type client struct {
-	Runtime *kubernetes.Clientset
-	Pod     *v1.Pod
+	Namespace string
+	Pod       *v1.Pod
+	Runtime   *kubernetes.Clientset
 }
 
 // New returns an Engine implementation that
@@ -43,10 +44,11 @@ func New(path string) (*client, error) {
 
 	// create the client object
 	c := &client{
-		Runtime: r,
+		Namespace: "docker",
 		Pod: &v1.Pod{
 			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		},
+		Runtime: r,
 	}
 
 	return c, nil
