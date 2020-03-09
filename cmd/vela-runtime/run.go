@@ -84,37 +84,39 @@ func run(c *cli.Context) error {
 	}
 
 	for _, step := range p.Steps {
+		// https://golang.org/doc/faq#closures_and_goroutines
+		tmp := step
+
 		// TODO: remove hardcoded reference
-		if step.Name == "init" {
+		if tmp.Name == "init" {
 			continue
 		}
 
-		logrus.Infof("Creating runtime container for step %s", step.Name)
-		err = runtime.RunContainer(ctx, p, step)
+		logrus.Infof("Creating runtime container for step %s", tmp.Name)
+		err = runtime.RunContainer(ctx, p, tmp)
 		if err != nil {
 			logrus.Fatal(err)
 		}
-
-		// time.Sleep(10 * time.Second)
 
 		// tail the logs of the container
-		// go func() {
-		logrus.Infof("Starting tail process for step %s", step.Name)
-		rc, err := runtime.TailContainer(ctx, step)
-		if err != nil {
-			logrus.Fatal(err)
-		}
-		defer rc.Close()
+		go func() {
+			logrus.Infof("Starting tail process for step %s", tmp.Name)
+			rc, err := runtime.TailContainer(ctx, tmp)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+			defer rc.Close()
 
-		// create new scanner from the container output
-		scanner := bufio.NewScanner(rc)
-		for scanner.Scan() {
-			fmt.Println(string(scanner.Bytes()))
-		}
-		// }()
+			logrus.Infof("Scanning logs for step %s", tmp.Name)
+			// create new scanner from the container output
+			scanner := bufio.NewScanner(rc)
+			for scanner.Scan() {
+				fmt.Println(string(scanner.Bytes()))
+			}
+		}()
 
-		logrus.Infof("waiting for step %s", step.Name)
-		err = runtime.WaitContainer(ctx, step)
+		logrus.Infof("waiting for step %s", tmp.Name)
+		err = runtime.WaitContainer(ctx, tmp)
 		if err != nil {
 			logrus.Fatal(err)
 		}
