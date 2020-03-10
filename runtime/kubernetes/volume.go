@@ -68,9 +68,9 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 // volume lives and dies with the pod it's attached to. However, Vela
 // uses it to cleanup the volume definition for the pod.
 func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("removing network for pod %s", b.ID)
+	logrus.Tracef("removing volume for pod %s", b.ID)
 
-	// remove the network definition from the pod spec
+	// remove the volume definition from the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
 	c.Pod.Spec.Volumes = []v1.Volume{}
