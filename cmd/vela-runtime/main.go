@@ -82,6 +82,12 @@ func main() {
 			Name:   "runtime.path",
 			Usage:  "path to runtime configuration file",
 		},
+		cli.StringFlag{
+			EnvVar: "VELA_RUNTIME_NAMESPACE,RUNTIME_NAMESPACE,KUBE_NAMESPACE",
+			Name:   "runtime.namespace",
+			Usage:  "name of namespace for runtime configuration (kubernetes runtime only)",
+			Value:  "docker",
+		},
 	}
 
 	err := app.Run(os.Args)

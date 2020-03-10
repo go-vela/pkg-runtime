@@ -5,7 +5,7 @@
 package kubernetes
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -20,7 +20,7 @@ type client struct {
 
 // New returns an Engine implementation that
 // integrates with a Kubernetes runtime.
-func New(path string) (*client, error) {
+func New(namespace, path string) (*client, error) {
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", path)
 	if err != nil {
@@ -44,7 +44,7 @@ func New(path string) (*client, error) {
 
 	// create the client object
 	c := &client{
-		Namespace: "docker",
+		Namespace: namespace,
 		Pod: &v1.Pod{
 			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		},
