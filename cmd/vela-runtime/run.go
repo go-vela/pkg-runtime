@@ -58,17 +58,45 @@ func run(c *cli.Context) error {
 	// setup the context
 	ctx := context.Background()
 
-	logrus.Infof("Creating runtime volume")
+	logrus.Infof("creating network for pipeline %s", p.ID)
+	err = runtime.CreateNetwork(ctx, p)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	logrus.Infof("creating volume for pipeline %s", p.ID)
 	err = runtime.CreateVolume(ctx, p)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	logrus.Infof("Creating runtime network")
-	err = runtime.CreateNetwork(ctx, p)
-	if err != nil {
-		logrus.Fatal(err)
-	}
+	defer func() {
+		for _, step := range p.Steps {
+			// TODO: remove hardcoded reference
+			if step.Name == "init" {
+				continue
+			}
+
+			logrus.Infof("removing container for step %s", step.Name)
+			// remove the runtime container
+			err := runtime.RemoveContainer(ctx, step)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+		}
+
+		logrus.Infof("removing volume for pipeline %s", p.ID)
+		err = runtime.RemoveVolume(ctx, p)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+
+		logrus.Infof("removing network for pipeline %s", p.ID)
+		err = runtime.RemoveNetwork(ctx, p)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	}()
 
 	for _, step := range p.Steps {
 		// TODO: remove hardcoded reference
@@ -76,10 +104,10 @@ func run(c *cli.Context) error {
 			continue
 		}
 
-		logrus.Infof("Setting up runtime container for step %s", step.Name)
+		logrus.Infof("setting up container for step %s", step.Name)
 		err = runtime.SetupContainer(ctx, step)
 		if err != nil {
-			logrus.Fatal(err)
+			return err
 		}
 	}
 
@@ -92,22 +120,22 @@ func run(c *cli.Context) error {
 			continue
 		}
 
-		logrus.Infof("Creating runtime container for step %s", tmp.Name)
+		logrus.Infof("creating container for step %s", tmp.Name)
 		err = runtime.RunContainer(ctx, p, tmp)
 		if err != nil {
-			logrus.Fatal(err)
+			return err
 		}
 
 		// tail the logs of the container
 		go func() {
-			logrus.Infof("Starting tail process for step %s", tmp.Name)
+			logrus.Infof("tailing container for step %s", tmp.Name)
 			rc, err := runtime.TailContainer(ctx, tmp)
 			if err != nil {
 				logrus.Fatal(err)
 			}
 			defer rc.Close()
 
-			logrus.Infof("Scanning logs for step %s", tmp.Name)
+			logrus.Infof("scanning container logs for step %s", tmp.Name)
 			// create new scanner from the container output
 			scanner := bufio.NewScanner(rc)
 			for scanner.Scan() {
@@ -115,10 +143,10 @@ func run(c *cli.Context) error {
 			}
 		}()
 
-		logrus.Infof("waiting for step %s", tmp.Name)
+		logrus.Infof("waiting for container for step %s", tmp.Name)
 		err = runtime.WaitContainer(ctx, tmp)
 		if err != nil {
-			logrus.Fatal(err)
+			return err
 		}
 	}
 
