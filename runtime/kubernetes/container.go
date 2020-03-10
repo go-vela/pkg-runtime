@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -262,7 +262,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		Factor:   2.0,
 		Jitter:   0.25,
 		Steps:    10,
-		Cap:      1 * time.Minute,
+		Cap:      2 * time.Minute,
 	}
 
 	logrus.Tracef("capturing logs with exponential backoff for container %s", ctn.ID)
