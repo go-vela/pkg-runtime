@@ -22,3 +22,11 @@ steps:
       done
     image: alpine:latest
     pull: true
+
+  # exit testing inspect step
+  - name: exit
+    commands:
+      - exit 1
+    image: alpine:latest
+    pull: true
+
