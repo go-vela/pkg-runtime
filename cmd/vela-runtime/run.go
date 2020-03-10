@@ -9,6 +9,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-vela/pkg-runtime/runtime"
+
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
@@ -50,7 +52,11 @@ func run(c *cli.Context) error {
 	}
 
 	// setup the runtime
-	runtime, err := setupRuntime(c)
+	r, err := runtime.New(&runtime.Setup{
+		Driver:    c.String("runtime.driver"),
+		Config:    c.String("runtime.config"),
+		Namespace: c.String("runtime.namespace"),
+	})
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -59,13 +65,13 @@ func run(c *cli.Context) error {
 	ctx := context.Background()
 
 	logrus.Infof("creating network for pipeline %s", p.ID)
-	err = runtime.CreateNetwork(ctx, p)
+	err = r.CreateNetwork(ctx, p)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
 	logrus.Infof("creating volume for pipeline %s", p.ID)
-	err = runtime.CreateVolume(ctx, p)
+	err = r.CreateVolume(ctx, p)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -79,20 +85,20 @@ func run(c *cli.Context) error {
 
 			logrus.Infof("removing container for step %s", step.Name)
 			// remove the runtime container
-			err := runtime.RemoveContainer(ctx, step)
+			err := r.RemoveContainer(ctx, step)
 			if err != nil {
 				logrus.Fatal(err)
 			}
 		}
 
 		logrus.Infof("removing volume for pipeline %s", p.ID)
-		err = runtime.RemoveVolume(ctx, p)
+		err = r.RemoveVolume(ctx, p)
 		if err != nil {
 			logrus.Fatal(err)
 		}
 
 		logrus.Infof("removing network for pipeline %s", p.ID)
-		err = runtime.RemoveNetwork(ctx, p)
+		err = r.RemoveNetwork(ctx, p)
 		if err != nil {
 			logrus.Fatal(err)
 		}
@@ -105,7 +111,7 @@ func run(c *cli.Context) error {
 		}
 
 		logrus.Infof("setting up container for step %s", step.Name)
-		err = runtime.SetupContainer(ctx, step)
+		err = r.SetupContainer(ctx, step)
 		if err != nil {
 			return err
 		}
@@ -121,7 +127,7 @@ func run(c *cli.Context) error {
 		}
 
 		logrus.Infof("creating container for step %s", tmp.Name)
-		err = runtime.RunContainer(ctx, p, tmp)
+		err = r.RunContainer(ctx, p, tmp)
 		if err != nil {
 			return err
 		}
@@ -129,7 +135,7 @@ func run(c *cli.Context) error {
 		// tail the logs of the container
 		go func() {
 			logrus.Infof("tailing container for step %s", tmp.Name)
-			rc, err := runtime.TailContainer(ctx, tmp)
+			rc, err := r.TailContainer(ctx, tmp)
 			if err != nil {
 				logrus.Fatal(err)
 			}
@@ -144,13 +150,13 @@ func run(c *cli.Context) error {
 		}()
 
 		logrus.Infof("waiting for container for step %s", tmp.Name)
-		err = runtime.WaitContainer(ctx, tmp)
+		err = r.WaitContainer(ctx, tmp)
 		if err != nil {
 			return err
 		}
 
 		logrus.Infof("inspecting container for step %s", tmp.Name)
-		err = runtime.InspectContainer(ctx, tmp)
+		err = r.InspectContainer(ctx, tmp)
 		if err != nil {
 			return err
 		}

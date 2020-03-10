@@ -49,4 +49,5 @@ kubernetes-run:
 	release/vela-runtime \
 		--log.level trace \
 		--runtime.driver kubernetes \
-		--runtime.path ~/.kube/config
+		--runtime.config ~/.kube/config \
+		--runtime.namespace docker
