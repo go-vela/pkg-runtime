@@ -78,15 +78,14 @@ func main() {
 			Usage:  "name of runtime driver to use",
 		},
 		cli.StringFlag{
-			EnvVar: "VELA_RUNTIME_PATH,RUNTIME_PATH,KUBECONFIG",
-			Name:   "runtime.path",
+			EnvVar: "VELA_RUNTIME_CONFIG,RUNTIME_CONFIG",
+			Name:   "runtime.config",
 			Usage:  "path to runtime configuration file",
 		},
 		cli.StringFlag{
-			EnvVar: "VELA_RUNTIME_NAMESPACE,RUNTIME_NAMESPACE,KUBE_NAMESPACE",
+			EnvVar: "VELA_RUNTIME_NAMESPACE,RUNTIME_NAMESPACE",
 			Name:   "runtime.namespace",
 			Usage:  "name of namespace for runtime configuration (kubernetes runtime only)",
-			Value:  "docker",
 		},
 	}
 

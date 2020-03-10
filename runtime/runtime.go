@@ -5,64 +5,56 @@
 package runtime
 
 import (
-	"context"
-	"io"
+	"fmt"
 
-	"github.com/go-vela/types/pipeline"
+	"github.com/go-vela/pkg-runtime/runtime/docker"
+	"github.com/go-vela/pkg-runtime/runtime/kubernetes"
+
+	"github.com/go-vela/types/constants"
+
+	"github.com/sirupsen/logrus"
 )
 
-// Engine represents the interface for Vela integrating
-// with the different supported Runtime environments.
-type Engine interface {
+// Setup represents the configuration necessary for
+// creating a Vela engine capable of integrating
+// with a configured runtime environment.
+type Setup struct {
+	Driver    string
+	Config    string
+	Namespace string
+}
 
-	// Container Engine Interface Functions
+// Docker creates and returns a Vela engine capable of
+// integrating with a Docker runtime environment.
+func (s *Setup) Docker() (Engine, error) {
+	logrus.Trace("creating docker runtime client from setup")
 
-	// InspectContainer defines a function that inspects
-	// the pipeline container.
-	InspectContainer(context.Context, *pipeline.Container) error
-	// RemoveContainer defines a function that deletes
-	// (kill, remove) the pipeline container.
-	RemoveContainer(context.Context, *pipeline.Container) error
-	// RunContainer defines a function that creates
-	// and start the pipeline container.
-	RunContainer(context.Context, *pipeline.Build, *pipeline.Container) error
-	// SetupContainer defines a function that pulls
-	// the image for the pipeline container.
-	SetupContainer(context.Context, *pipeline.Container) error
-	// TailContainer defines a function that captures
-	// the logs on the pipeline container.
-	TailContainer(context.Context, *pipeline.Container) (io.ReadCloser, error)
-	// WaitContainer defines a function that blocks
-	// until the pipeline container completes.
-	WaitContainer(context.Context, *pipeline.Container) error
+	return docker.New()
+}
 
-	// Image Engine Interface Functions
+// Kubernetes creates and returns a Vela engine capable of
+// integrating with a Kubernetes runtime environment.
+func (s *Setup) Kubernetes() (Engine, error) {
+	logrus.Trace("creating kubernetes runtime client from setup")
 
-	// InspectImage defines a function that
-	// inspects the pipeline container image.
-	InspectImage(context.Context, *pipeline.Container) ([]byte, error)
+	return kubernetes.New(s.Namespace, s.Config)
+}
 
-	// Network Engine Interface Functions
+// New creates and returns a Vela engine capable of integrating
+// with the configured runtime environment. Currently the
+// following runtimes are supported:
+//
+// * docker
+// * kubernetes
+func New(s *Setup) (Engine, error) {
+	logrus.Debug("creating runtime client from setup")
 
-	// CreateNetwork defines a function that
-	// creates the pipeline network.
-	CreateNetwork(context.Context, *pipeline.Build) error
-	// InspectNetwork defines a function that
-	// inspects the pipeline network.
-	InspectNetwork(context.Context, *pipeline.Build) ([]byte, error)
-	// RemoveNetwork defines a function that
-	// deletes the pipeline network.
-	RemoveNetwork(context.Context, *pipeline.Build) error
-
-	// Volume Engine Interface Functions
-
-	// CreateVolume defines a function that
-	// creates the pipeline volume.
-	CreateVolume(context.Context, *pipeline.Build) error
-	// InspectVolume defines a function that
-	// inspects the pipeline volume.
-	InspectVolume(context.Context, *pipeline.Build) ([]byte, error)
-	// RemoveVolume defines a function that
-	// deletes the pipeline volume.
-	RemoveVolume(context.Context, *pipeline.Build) error
+	switch s.Driver {
+	case constants.DriverDocker:
+		return s.Docker()
+	case constants.DriverKubernetes:
+		return s.Kubernetes()
+	default:
+		return nil, fmt.Errorf("invalid runtime driver: %s", s.Driver)
+	}
 }
