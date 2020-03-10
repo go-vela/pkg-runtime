@@ -25,6 +25,35 @@ import (
 
 // InspectContainer inspects the pipeline container.
 func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) error {
+	logrus.Tracef("inspecting container %s", ctn.ID)
+
+	// create options for getting the container
+	opts := metav1.GetOptions{}
+
+	// send API call to capture the container
+	//
+	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
+	pod, err := c.Runtime.CoreV1().Pods(c.Namespace).Get(c.Pod.ObjectMeta.Name, opts)
+	if err != nil {
+		return err
+	}
+
+	// iterate through each container in the pod
+	for _, cst := range pod.Status.ContainerStatuses {
+		// check if the container has a matching ID
+		//
+		// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#ContainerStatus
+		if !strings.EqualFold(cst.Name, ctn.ID) {
+			// skip container if it's not a matching ID
+			continue
+		}
+
+		// set the step exit code
+		ctn.ExitCode = int(cst.State.Terminated.ExitCode)
+
+		break
+	}
+
 	return nil
 }
 

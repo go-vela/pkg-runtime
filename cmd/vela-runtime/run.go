@@ -148,6 +148,14 @@ func run(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
+
+		logrus.Infof("inspecting container for step %s", tmp.Name)
+		err = runtime.InspectContainer(ctx, tmp)
+		if err != nil {
+			return err
+		}
+
+		logrus.Infof("Container exited with code %d", tmp.ExitCode)
 	}
 
 	return nil
