@@ -7,38 +7,10 @@ package runtime
 import (
 	"fmt"
 
-	"github.com/go-vela/pkg-runtime/runtime/docker"
-	"github.com/go-vela/pkg-runtime/runtime/kubernetes"
-
 	"github.com/go-vela/types/constants"
 
 	"github.com/sirupsen/logrus"
 )
-
-// Setup represents the configuration necessary for
-// creating a Vela engine capable of integrating
-// with a configured runtime environment.
-type Setup struct {
-	Driver    string
-	Config    string
-	Namespace string
-}
-
-// Docker creates and returns a Vela engine capable of
-// integrating with a Docker runtime environment.
-func (s *Setup) Docker() (Engine, error) {
-	logrus.Trace("creating docker runtime client from setup")
-
-	return docker.New()
-}
-
-// Kubernetes creates and returns a Vela engine capable of
-// integrating with a Kubernetes runtime environment.
-func (s *Setup) Kubernetes() (Engine, error) {
-	logrus.Trace("creating kubernetes runtime client from setup")
-
-	return kubernetes.New(s.Namespace, s.Config)
-}
 
 // New creates and returns a Vela engine capable of integrating
 // with the configured runtime environment. Currently the
@@ -47,14 +19,23 @@ func (s *Setup) Kubernetes() (Engine, error) {
 // * docker
 // * kubernetes
 func New(s *Setup) (Engine, error) {
-	logrus.Debug("creating runtime client from setup")
+	// validate the setup being provided
+	err := s.Validate()
+	if err != nil {
+		return nil, err
+	}
 
+	logrus.Debug("creating runtime client from setup")
+	// process the runtime driver being provided
 	switch s.Driver {
 	case constants.DriverDocker:
+		// handle the Docker runtime driver being provided
 		return s.Docker()
 	case constants.DriverKubernetes:
+		// handle the Kubernetes runtime driver being provided
 		return s.Kubernetes()
 	default:
-		return nil, fmt.Errorf("invalid runtime driver: %s", s.Driver)
+		// handle an invalid runtime driver being provided
+		return nil, fmt.Errorf("invalid runtime driver provided in setup: %s", s.Driver)
 	}
 }
