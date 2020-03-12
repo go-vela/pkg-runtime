@@ -127,7 +127,7 @@ func run(c *cli.Context) error {
 		}
 
 		logrus.Infof("creating container for step %s", tmp.Name)
-		err = r.RunContainer(ctx, p, tmp)
+		err = r.RunContainer(ctx, tmp, p)
 		if err != nil {
 			return err
 		}
