@@ -6,6 +6,10 @@ build: binary-build
 
 run: build kubernetes-run
 
+docker-test: build docker-run
+
+kubernetes-test: build kubernetes-run
+
 test: build docker-run kubernetes-run
 
 #################################

@@ -99,7 +99,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 }
 
 // RunContainer creates and start the pipeline container.
-func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipeline.Container) error {
+func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
 
 	// TODO: investigate way to move this logic

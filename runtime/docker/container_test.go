@@ -79,13 +79,13 @@ func TestDocker_RunContainer_Success(t *testing.T) {
 
 	// run test
 	got := c.RunContainer(context.Background(),
-		&pipeline.Build{
-			Version: "1",
-			ID:      "__0",
-		},
 		&pipeline.Container{
 			ID:    "container_id",
 			Image: "alpine:latest",
+		},
+		&pipeline.Build{
+			Version: "1",
+			ID:      "__0",
 		})
 
 	if got != nil {
@@ -105,8 +105,8 @@ func TestDocker_RunContainer_Failure(t *testing.T) {
 
 	// run test
 	got := c.RunContainer(context.Background(),
-		&pipeline.Build{},
-		&pipeline.Container{})
+		&pipeline.Container{},
+		&pipeline.Build{})
 
 	// this should be "=="
 	if got != nil {

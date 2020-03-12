@@ -14,7 +14,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 
@@ -71,26 +70,32 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 		return err
 	}
 
+	// Empty the container config
+	c.ctnConf = nil
+
+	// Empty the host config
+	c.hostConf = nil
+
+	// Empty the host config
+	c.netConf = nil
+
 	return nil
 }
 
 // RunContainer creates and start the pipeline container.
-func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipeline.Container) error {
+func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	// create container configuration
-	ctnConf := ctnConfig(ctn)
-	// create host configuration
-	hostConf := hostConfig(b.ID)
-	// create network configuration
-	netConf := netConfig(b.ID, ctn.Name)
+	c.ctnConf = ctnConfig(ctn)
+	c.netConf = netConfig(b.ID, ctn.Name)
 
 	logrus.Tracef("Creating container for step %s", b.ID)
 
 	// send API call to create the container
 	container, err := c.Runtime.ContainerCreate(
 		ctx,
-		ctnConf,
-		hostConf,
-		netConf,
+		c.ctnConf,
+		c.hostConf,
+		c.netConf,
 		ctn.ID,
 	)
 	if err != nil {
@@ -204,7 +209,11 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 
 	// capture all stdout and stderr logs
 	go func() {
-		stdcopy.StdCopy(wc, wc, logs)
+		_, err := stdcopy.StdCopy(wc, wc, logs)
+		if err != nil {
+			logrus.Error("unable to copy logs: %w", err)
+		}
+
 		logs.Close()
 		wc.Close()
 		rc.Close()
@@ -274,22 +283,4 @@ func ctnConfig(ctn *pipeline.Container) *container.Config {
 	}
 
 	return config
-}
-
-// hostConfig is a helper function to generate
-// the host config for a container.
-func hostConfig(id string) *container.HostConfig {
-	return &container.HostConfig{
-		LogConfig: container.LogConfig{
-			Type: "json-file",
-		},
-		Privileged: false,
-		Mounts: []mount.Mount{
-			{
-				Type:   mount.TypeVolume,
-				Source: id,
-				Target: "/home",
-			},
-		},
-	}
 }
