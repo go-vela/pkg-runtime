@@ -25,7 +25,7 @@ type Engine interface {
 	RemoveContainer(context.Context, *pipeline.Container) error
 	// RunContainer defines a function that creates
 	// and start the pipeline container.
-	RunContainer(context.Context, *pipeline.Build, *pipeline.Container) error
+	RunContainer(context.Context, *pipeline.Container, *pipeline.Build) error
 	// SetupContainer defines a function that pulls
 	// the image for the pipeline container.
 	SetupContainer(context.Context, *pipeline.Container) error

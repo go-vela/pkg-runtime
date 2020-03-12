@@ -5,6 +5,8 @@
 package docker
 
 import (
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	docker "github.com/docker/docker/client"
 	"github.com/go-vela/pkg-runtime/runtime/docker/testdata/mock"
 	"github.com/sirupsen/logrus"
@@ -14,6 +16,10 @@ const dockerVersion = "1.38"
 
 type client struct {
 	Runtime *docker.Client
+
+	ctnConf  *container.Config
+	hostConf *container.HostConfig
+	netConf  *network.NetworkingConfig
 }
 
 // New returns an Engine implementation that
@@ -27,14 +33,17 @@ func New() (*client, error) {
 	// pin version to prevent "client version <version> is too new." errors
 	// typically this would be inherited from the host env but this will ensure
 	// we know what version of the Docker API we're using
-	docker.WithVersion(dockerVersion)(r)
-
-	// create the client object
-	c := &client{
-		Runtime: r,
+	err = docker.WithVersion(dockerVersion)(r)
+	if err != nil {
+		return nil, err
 	}
 
-	return c, nil
+	return &client{
+		Runtime:  r,
+		ctnConf:  new(container.Config),
+		hostConf: new(container.HostConfig),
+		netConf:  new(network.NetworkingConfig),
+	}, nil
 }
 
 // NewMock returns an Engine implementation that

@@ -71,26 +71,33 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 		return err
 	}
 
+	// Empty the container config
+	c.ctnConf = nil
+
+	// Empty the host config
+	c.hostConf = nil
+
+	// Empty the host config
+	c.netConf = nil
+
 	return nil
 }
 
 // RunContainer creates and start the pipeline container.
-func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipeline.Container) error {
-	// create container configuration
-	ctnConf := ctnConfig(ctn)
+func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	// create host configuration
-	hostConf := hostConfig(b.ID)
+	c.hostConf = hostConfig(b.ID)
 	// create network configuration
-	netConf := netConfig(b.ID, ctn.Name)
+	c.netConf = netConfig(b.ID, ctn.Name)
 
 	logrus.Tracef("Creating container for step %s", b.ID)
 
 	// send API call to create the container
 	container, err := c.Runtime.ContainerCreate(
 		ctx,
-		ctnConf,
-		hostConf,
-		netConf,
+		c.ctnConf,
+		c.hostConf,
+		c.netConf,
 		ctn.ID,
 	)
 	if err != nil {
@@ -114,6 +121,9 @@ func (c *client) RunContainer(ctx context.Context, b *pipeline.Build, ctn *pipel
 // SetupContainer pulls the image for the pipeline container.
 func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
 	logrus.Tracef("Parsing image %s", ctn.Image)
+
+	// create container configuration
+	c.ctnConf = ctnConfig(ctn)
 
 	// parse image from container
 	image, err := parseImage(ctn.Image)
@@ -204,7 +214,11 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 
 	// capture all stdout and stderr logs
 	go func() {
-		stdcopy.StdCopy(wc, wc, logs)
+		_, err := stdcopy.StdCopy(wc, wc, logs)
+		if err != nil {
+			logrus.Error("unable to copy logs: %w", err)
+		}
+
 		logs.Close()
 		wc.Close()
 		rc.Close()
