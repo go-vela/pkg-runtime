@@ -7,6 +7,8 @@ package docker
 import (
 	"context"
 
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 	types "github.com/docker/docker/api/types/volume"
 	"github.com/go-vela/types/pipeline"
 	"github.com/sirupsen/logrus"
@@ -15,6 +17,9 @@ import (
 // CreateVolume creates the pipeline volume.
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("Creating volume for pipeline %s", b.ID)
+
+	// create host configuration
+	c.hostConf = hostConfig(b.ID)
 
 	// create options for creating volume
 	opts := types.VolumeCreateBody{
@@ -55,4 +60,22 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	}
 
 	return nil
+}
+
+// hostConfig is a helper function to generate
+// the host config with volume specification for a container.
+func hostConfig(id string) *container.HostConfig {
+	return &container.HostConfig{
+		LogConfig: container.LogConfig{
+			Type: "json-file",
+		},
+		Privileged: false,
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeVolume,
+				Source: id,
+				Target: "/home",
+			},
+		},
+	}
 }

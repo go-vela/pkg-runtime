@@ -14,7 +14,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 
@@ -85,9 +84,8 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 
 // RunContainer creates and start the pipeline container.
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
-	// create host configuration
-	c.hostConf = hostConfig(b.ID)
-	// create network configuration
+	// create container configuration
+	c.ctnConf = ctnConfig(ctn)
 	c.netConf = netConfig(b.ID, ctn.Name)
 
 	logrus.Tracef("Creating container for step %s", b.ID)
@@ -121,9 +119,6 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 // SetupContainer pulls the image for the pipeline container.
 func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
 	logrus.Tracef("Parsing image %s", ctn.Image)
-
-	// create container configuration
-	c.ctnConf = ctnConfig(ctn)
 
 	// parse image from container
 	image, err := parseImage(ctn.Image)
@@ -288,22 +283,4 @@ func ctnConfig(ctn *pipeline.Container) *container.Config {
 	}
 
 	return config
-}
-
-// hostConfig is a helper function to generate
-// the host config for a container.
-func hostConfig(id string) *container.HostConfig {
-	return &container.HostConfig{
-		LogConfig: container.LogConfig{
-			Type: "json-file",
-		},
-		Privileged: false,
-		Mounts: []mount.Mount{
-			{
-				Type:   mount.TypeVolume,
-				Source: id,
-				Target: "/home",
-			},
-		},
-	}
 }
