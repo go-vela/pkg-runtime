@@ -1,6 +1,6 @@
 # pkg-runtime
 
-[![license](https://img.shields.io/crates/l/gl.svg)](LICENSE)
+[![license](https://img.shields.io/crates/l/gl.svg)](../LICENSE)
 [![GoDoc](https://godoc.org/github.com/go-vela/pkg-runtime?status.svg)](https://godoc.org/github.com/go-vela/pkg-runtime)
 [![Go Report Card](https://goreportcard.com/badge/go-vela/pkg-runtime)](https://goreportcard.com/report/go-vela/pkg-runtime)
 [![codecov](https://codecov.io/gh/go-vela/pkg-runtime/branch/master/graph/badge.svg)](https://codecov.io/gh/go-vela/pkg-runtime)
