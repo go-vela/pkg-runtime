@@ -12,7 +12,7 @@ require (
 	github.com/go-vela/compiler v0.3.1-0.20200302143952-6a5a26ba1fbc
 	github.com/go-vela/types v0.3.1-0.20200228213236-820f8df3a782
 	github.com/gogo/protobuf v1.3.1 // indirect
-	github.com/google/go-cmp v0.3.1
+	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/morikuni/aec v1.0.0 // indirect
