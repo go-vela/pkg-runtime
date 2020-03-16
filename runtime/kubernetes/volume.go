@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/go-vela/types/pipeline"
 
@@ -44,7 +44,7 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	// add the volume definition to the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, volume)
+	c.pod.Spec.Volumes = append(c.pod.Spec.Volumes, volume)
 
 	return nil
 }
@@ -54,7 +54,7 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 	logrus.Tracef("inspecting volume for pod %s", b.ID)
 
 	// marshal the volume information from the pod
-	bytes, err := json.Marshal(c.Pod.Spec.Volumes)
+	bytes, err := json.Marshal(c.pod.Spec.Volumes)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	// remove the volume definition from the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.Pod.Spec.Volumes = []v1.Volume{}
+	c.pod.Spec.Volumes = []v1.Volume{}
 
 	return nil
 }

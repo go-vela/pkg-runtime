@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/go-vela/types/pipeline"
 
@@ -81,7 +81,7 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 	// add the network definition to the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.Pod.Spec.HostAliases = append(c.Pod.Spec.HostAliases, network)
+	c.pod.Spec.HostAliases = append(c.pod.Spec.HostAliases, network)
 
 	return nil
 }
@@ -91,7 +91,7 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 	logrus.Tracef("inspecting network for pod %s", b.ID)
 
 	// marshal the network information from the pod
-	bytes, err := json.Marshal(c.Pod.Spec.HostAliases)
+	bytes, err := json.Marshal(c.pod.Spec.HostAliases)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (c *client) RemoveNetwork(ctx context.Context, b *pipeline.Build) error {
 	// remove the network definition from the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.Pod.Spec.HostAliases = []v1.HostAlias{}
+	c.pod.Spec.HostAliases = []v1.HostAlias{}
 
 	return nil
 }
