@@ -14,15 +14,15 @@ import (
 // the runtime Engine in the context.
 const key = "runtime"
 
-// FromContext retrieves the executor Engine from the context.Context.
+// FromContext retrieves the runtime Engine from the context.Context.
 func FromContext(c context.Context) Engine {
-	// get executor value from context.Context
+	// get runtime value from context.Context
 	v := c.Value(key)
 	if v == nil {
 		return nil
 	}
 
-	// cast executor value to expected Engine type
+	// cast runtime value to expected Engine type
 	e, ok := v.(Engine)
 	if !ok {
 		return nil
@@ -31,9 +31,9 @@ func FromContext(c context.Context) Engine {
 	return e
 }
 
-// FromGinContext retrieves the executor Engine from the gin.Context.
+// FromGinContext retrieves the runtime Engine from the gin.Context.
 func FromGinContext(c *gin.Context) Engine {
-	// get executor value from gin.Context
+	// get runtime value from gin.Context
 	//
 	// https://pkg.go.dev/github.com/gin-gonic/gin?tab=doc#Context.Get
 	v, ok := c.Get(key)
@@ -41,7 +41,7 @@ func FromGinContext(c *gin.Context) Engine {
 		return nil
 	}
 
-	// cast executor value to expected Engine type
+	// cast runtime value to expected Engine type
 	e, ok := v.(Engine)
 	if !ok {
 		return nil
@@ -50,17 +50,17 @@ func FromGinContext(c *gin.Context) Engine {
 	return e
 }
 
-// WithContext inserts the executor Engine into the context.Context.
+// WithContext inserts the runtime Engine into the context.Context.
 func WithContext(c context.Context, e Engine) context.Context {
-	// set the executor Engine in the context.Context
+	// set the runtime Engine in the context.Context
 	//
 	// https://pkg.go.dev/context?tab=doc#WithValue
 	return context.WithValue(c, key, e)
 }
 
-// WithGinContext inserts the executor Engine into the gin.Context.
+// WithGinContext inserts the runtime Engine into the gin.Context.
 func WithGinContext(c *gin.Context, e Engine) {
-	// set the executor Engine in the gin.Context
+	// set the runtime Engine in the gin.Context
 	//
 	// https://pkg.go.dev/github.com/gin-gonic/gin?tab=doc#Context.Set
 	c.Set(key, e)
