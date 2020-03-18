@@ -9,8 +9,6 @@ import (
 )
 
 func TestDocker_New(t *testing.T) {
-	// setup types
-
 	// run test
 	_, err := New()
 	if err != nil {
