@@ -10,7 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -25,18 +24,12 @@ type client struct {
 // integrates with a Kubernetes runtime.
 func New(namespace, path string) (*client, error) {
 	// use the current context in kubeconfig
+	//
+	// when kube config is provided use out of cluster config option else
+	// function will build and return an InClusterConfig
 	config, err := clientcmd.BuildConfigFromFlags("", path)
 	if err != nil {
 		return nil, err
-	}
-
-	// kubeconfig is provided use out of cluster config option
-	if len(path) == 0 {
-		// creates the in-cluster Kubernetes configuration
-		config, err = rest.InClusterConfig()
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	// creates Kubernetes client from configuration
