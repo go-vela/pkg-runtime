@@ -30,6 +30,7 @@ func New() (*client, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// pin version to prevent "client version <version> is too new." errors
 	// typically this would be inherited from the host env but this will ensure
 	// we know what version of the Docker API we're using

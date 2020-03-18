@@ -17,8 +17,12 @@ func TestDocker_InspectContainer_Success(t *testing.T) {
 
 	// run test
 	got := c.InspectContainer(context.Background(), &pipeline.Container{
-		ID:    "container_id",
-		Image: "alpine:latest",
+		ID:          "container_id",
+		Image:       "alpine:latest",
+		Environment: map[string]string{"foo": "bar"},
+		Entrypoint:  []string{"/bin/sh", "-c"},
+		Commands:    []string{""},
+		Pull:        true,
 	})
 
 	if got != nil {
@@ -48,8 +52,12 @@ func TestDocker_RemoveContainer_Success(t *testing.T) {
 
 	// run test
 	got := c.RemoveContainer(context.Background(), &pipeline.Container{
-		ID:    "container_id",
-		Image: "alpine:latest",
+		ID:          "container_id",
+		Image:       "alpine:latest",
+		Environment: map[string]string{"foo": "bar"},
+		Entrypoint:  []string{"/bin/sh", "-c"},
+		Commands:    []string{""},
+		Pull:        true,
 	})
 
 	if got != nil {
@@ -80,8 +88,12 @@ func TestDocker_RunContainer_Success(t *testing.T) {
 	// run test
 	got := c.RunContainer(context.Background(),
 		&pipeline.Container{
-			ID:    "container_id",
-			Image: "alpine:latest",
+			ID:          "container_id",
+			Image:       "alpine:latest",
+			Environment: map[string]string{"foo": "bar"},
+			Entrypoint:  []string{"/bin/sh", "-c"},
+			Commands:    []string{""},
+			Pull:        true,
 		},
 		&pipeline.Build{
 			Version: "1",
@@ -118,15 +130,43 @@ func TestDocker_SetupContainer_Success(t *testing.T) {
 	// setup Docker
 	c, _ := NewMock()
 
-	// run test
-	got := c.SetupContainer(context.Background(), &pipeline.Container{
-		ID:    "container_id",
-		Image: "alpine:latest",
-		Pull:  true,
-	})
+	// setup types
+	tests := []struct {
+		container *pipeline.Container
+		want      error
+	}{
+		{ // test container with pull policy
+			container: &pipeline.Container{
+				ID:          "container_id",
+				Image:       "alpine:latest",
+				Environment: map[string]string{"foo": "bar"},
+				Entrypoint:  []string{"/bin/sh", "-c"},
+				Commands:    []string{""},
+				Pull:        true,
+			},
+			want: nil,
+		},
 
-	if got != nil {
-		t.Errorf("SetupContainer is %v, want nil", got)
+		{ // test container with out pull policy
+			container: &pipeline.Container{
+				ID:          "container_id",
+				Image:       "alpine:notfound",
+				Environment: map[string]string{"foo": "bar"},
+				Entrypoint:  []string{"/bin/sh", "-c"},
+				Commands:    []string{""},
+			},
+			want: nil,
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		// run test
+		got := c.SetupContainer(context.Background(), test.container)
+
+		if got != test.want {
+			t.Errorf("SetupContainer is %v, want nil", got)
+		}
 	}
 }
 
@@ -148,8 +188,12 @@ func TestDocker_TailContainer_Success(t *testing.T) {
 
 	// run test
 	_, got := c.TailContainer(context.Background(), &pipeline.Container{
-		ID:    "container_id",
-		Image: "alpine:latest",
+		ID:          "container_id",
+		Image:       "alpine:latest",
+		Environment: map[string]string{"foo": "bar"},
+		Entrypoint:  []string{"/bin/sh", "-c"},
+		Commands:    []string{""},
+		Pull:        true,
 	})
 
 	if got != nil {
@@ -182,8 +226,12 @@ func TestDocker_WaitContainer_Success(t *testing.T) {
 
 	// run test
 	got := c.WaitContainer(context.Background(), &pipeline.Container{
-		ID:    "container_id",
-		Image: "alpine:latest",
+		ID:          "container_id",
+		Image:       "alpine:latest",
+		Environment: map[string]string{"foo": "bar"},
+		Entrypoint:  []string{"/bin/sh", "-c"},
+		Commands:    []string{""},
+		Pull:        true,
 	})
 
 	if got != nil {
