@@ -1,0 +1,41 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+package runtime
+
+import (
+	"github.com/urfave/cli"
+)
+
+// Flags represents all supported command line
+// interface (CLI) flags for the runtime.
+var Flags = []cli.Flag{
+
+	// Logging Flags
+
+	cli.StringFlag{
+		EnvVar: "RUNTIME_LOG_LEVEL,VELA_LOG_LEVEL,LOG_LEVEL",
+		Name:   "runtime.log.level",
+		Usage:  "set log level - options: (trace|debug|info|warn|error|fatal|panic)",
+		Value:  "info",
+	},
+
+	// Runtime Flags
+
+	cli.StringFlag{
+		EnvVar: "VELA_RUNTIME_DRIVER,RUNTIME_DRIVER",
+		Name:   "runtime.driver",
+		Usage:  "name of runtime driver to use",
+	},
+	cli.StringFlag{
+		EnvVar: "VELA_RUNTIME_CONFIG,RUNTIME_CONFIG",
+		Name:   "runtime.config",
+		Usage:  "path to runtime configuration file",
+	},
+	cli.StringFlag{
+		EnvVar: "VELA_RUNTIME_NAMESPACE,RUNTIME_NAMESPACE",
+		Name:   "runtime.namespace",
+		Usage:  "name of namespace for runtime configuration (kubernetes runtime only)",
+	},
+}
