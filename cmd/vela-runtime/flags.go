@@ -11,37 +11,37 @@ import (
 )
 
 func flags() []cli.Flag {
-	return append(
-		[]cli.Flag{
+	f := []cli.Flag{
 
-			cli.StringFlag{
-				EnvVar: "VELA_PIPELINE_CONFIG,PIPELINE_CONFIG",
-				Name:   "pipeline.config",
-				Usage:  "path to pipeline configuration file",
-				Value:  "testdata/steps.yml",
-			},
-
-			// Compiler Flags
-
-			cli.BoolFlag{
-				EnvVar: "VELA_COMPILER_GITHUB,COMPILER_GITHUB",
-				Name:   "github.driver",
-				Usage:  "github compiler driver",
-			},
-			cli.StringFlag{
-				EnvVar: "VELA_COMPILER_GITHUB_URL,COMPILER_GITHUB_URL",
-				Name:   "github.url",
-				Usage:  "github url, used by compiler, for pulling registry templates",
-			},
-			cli.StringFlag{
-				EnvVar: "VELA_COMPILER_GITHUB_TOKEN,COMPILER_GITHUB_TOKEN",
-				Name:   "github.token",
-				Usage:  "github token, used by compiler, for pulling registry templates",
-			},
+		cli.StringFlag{
+			EnvVar: "VELA_PIPELINE_CONFIG,PIPELINE_CONFIG",
+			Name:   "pipeline.config",
+			Usage:  "path to pipeline configuration file",
+			Value:  "testdata/steps.yml",
 		},
 
-		// Runtime Flags
+		// Compiler Flags
 
-		runtime.Flags...,
-	)
+		cli.BoolFlag{
+			EnvVar: "VELA_COMPILER_GITHUB,COMPILER_GITHUB",
+			Name:   "github.driver",
+			Usage:  "github compiler driver",
+		},
+		cli.StringFlag{
+			EnvVar: "VELA_COMPILER_GITHUB_URL,COMPILER_GITHUB_URL",
+			Name:   "github.url",
+			Usage:  "github url, used by compiler, for pulling registry templates",
+		},
+		cli.StringFlag{
+			EnvVar: "VELA_COMPILER_GITHUB_TOKEN,COMPILER_GITHUB_TOKEN",
+			Name:   "github.token",
+			Usage:  "github token, used by compiler, for pulling registry templates",
+		},
+	}
+
+	// Runtime Flags
+
+	f = append(f, runtime.Flags...)
+
+	return f
 }
