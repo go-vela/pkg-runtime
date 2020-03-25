@@ -12,10 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const dockerVersion = "1.38"
+// expected version for the Docker API
+const version = "1.38"
 
 type client struct {
-	Runtime *docker.Client
+	// https://godoc.org/github.com/docker/docker/client#CommonAPIClient
+	Runtime docker.CommonAPIClient
 
 	ctnConf  *container.Config
 	hostConf *container.HostConfig
@@ -26,21 +28,26 @@ type client struct {
 // integrates with a Docker runtime.
 func New() (*client, error) {
 	// create Docker client from environment
-	r, err := docker.NewClientWithOpts(docker.FromEnv)
+	//
+	// https://godoc.org/github.com/docker/docker/client#NewClientWithOpts
+	_docker, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		return nil, err
 	}
 
-	// pin version to prevent "client version <version> is too new." errors
-	// typically this would be inherited from the host env but this will ensure
-	// we know what version of the Docker API we're using
-	err = docker.WithVersion(dockerVersion)(r)
+	// pin version to ensure we know what Docker API version we're using
+	//
+	// typically this would be inherited from the host environment
+	// but this ensures the version of client being used
+	//
+	// https://godoc.org/github.com/docker/docker/client#WithVersion
+	err = docker.WithVersion(version)(_docker)
 	if err != nil {
 		return nil, err
 	}
 
 	return &client{
-		Runtime:  r,
+		Runtime:  _docker,
 		ctnConf:  new(container.Config),
 		hostConf: new(container.HostConfig),
 		netConf:  new(network.NetworkingConfig),
@@ -56,14 +63,14 @@ func NewMock() (*client, error) {
 	mock := mock.Client(mock.Router)
 
 	// create Docker client from the mock client
-	r, err := docker.NewClient("tcp://127.0.0.1:2333", dockerVersion, mock, nil)
+	_docker, err := docker.NewClient("tcp://127.0.0.1:2333", version, mock, nil)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
 	// create the client object
 	c := &client{
-		Runtime: r,
+		Runtime: _docker,
 	}
 
 	return c, nil
