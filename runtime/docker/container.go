@@ -22,7 +22,7 @@ import (
 
 // InspectContainer inspects the pipeline container.
 func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("Inspecting container for step %s", ctn.ID)
+	logrus.Tracef("inspecting container %s", ctn.ID)
 
 	// send API call to inspect the container
 	//
@@ -42,7 +42,7 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 
 // RemoveContainer deletes (kill, remove) the pipeline container.
 func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("Removing container for step %s", ctn.ID)
+	logrus.Tracef("removing container %s", ctn.ID)
 
 	// send API call to inspect the container
 	//
@@ -98,30 +98,25 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 
 // RunContainer creates and start the pipeline container.
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
+	logrus.Tracef("running container %s", ctn.ID)
+
 	// create container configuration
 	c.ctnConf = ctnConfig(ctn)
 	c.netConf = netConfig(b.ID, ctn.Name)
-
-	logrus.Tracef("Creating container for step %s", b.ID)
 
 	// send API call to create the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerCreate
 	container, err := c.Runtime.ContainerCreate(
 		ctx,
-		// https://godoc.org/github.com/docker/docker/api/types/container#Config
 		c.ctnConf,
-		// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
 		c.hostConf,
-		// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
 		c.netConf,
 		ctn.ID,
 	)
 	if err != nil {
 		return err
 	}
-
-	logrus.Tracef("Starting container for step %s", b.ID)
 
 	// create options for starting container
 	//
@@ -141,7 +136,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 
 // SetupContainer pulls the image for the pipeline container.
 func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("Parsing image %s", ctn.Image)
+	logrus.Tracef("setting up for container %s", ctn.ID)
 
 	// parse image from container
 	image, err := parseImage(ctn.Image)
@@ -151,7 +146,6 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 
 	// check if the container should be updated
 	if ctn.Pull {
-		logrus.Tracef("Pulling configured image %s", image)
 		// create options for pulling image
 		//
 		// https://godoc.org/github.com/docker/docker/api/types#ImagePullOptions
@@ -189,8 +183,6 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	//
 	// https://godoc.org/github.com/docker/docker/client#IsErrNotFound
 	if docker.IsErrNotFound(err) {
-		logrus.Tracef("Pulling unfound image %s", image)
-
 		// create options for pulling image
 		//
 		// // https://godoc.org/github.com/docker/docker/api/types#ImagePullOptions
@@ -220,7 +212,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 
 // TailContainer captures the logs for the pipeline container.
 func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io.ReadCloser, error) {
-	logrus.Tracef("Capturing container logs for step %s", ctn.ID)
+	logrus.Tracef("tailing output for container %s", ctn.ID)
 
 	// create options for capturing container logs
 	//
@@ -244,7 +236,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 	// create in-memory pipe for capturing logs
 	rc, wc := io.Pipe()
 
-	logrus.Tracef("Copying container logs for step %s", ctn.ID)
+	logrus.Tracef("copying logs for container %s", ctn.ID)
 
 	// capture all stdout and stderr logs
 	go func() {
@@ -253,7 +245,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		// https://godoc.org/github.com/docker/docker/pkg/stdcopy#StdCopy
 		_, err := stdcopy.StdCopy(wc, wc, logs)
 		if err != nil {
-			logrus.Error("unable to copy logs: %w", err)
+			logrus.Errorf("unable to copy logs for container: %v", err)
 		}
 
 		// close all buffers
@@ -267,7 +259,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 
 // WaitContainer blocks until the pipeline container completes.
 func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("Waiting for container for step %s", ctn.ID)
+	logrus.Tracef("waiting for container %s", ctn.ID)
 
 	// send API call to wait for the container completion
 	//

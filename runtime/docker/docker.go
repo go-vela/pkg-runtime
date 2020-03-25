@@ -19,9 +19,12 @@ type client struct {
 	// https://godoc.org/github.com/docker/docker/client#CommonAPIClient
 	Runtime docker.CommonAPIClient
 
-	ctnConf  *container.Config
+	// https://godoc.org/github.com/docker/docker/api/types/container#Config
+	ctnConf *container.Config
+	// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
 	hostConf *container.HostConfig
-	netConf  *network.NetworkingConfig
+	// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
+	netConf *network.NetworkingConfig
 }
 
 // New returns an Engine implementation that

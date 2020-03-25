@@ -18,7 +18,7 @@ import (
 
 // CreateNetwork creates the pipeline network.
 func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("creating network for pod %s", b.ID)
+	logrus.Tracef("creating network for pipeline %s", b.ID)
 
 	// create the network for the pod
 	//
@@ -88,7 +88,7 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 
 // InspectNetwork inspects the pipeline network.
 func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte, error) {
-	logrus.Tracef("inspecting network for pod %s", b.ID)
+	logrus.Tracef("inspecting network for pipeline %s", b.ID)
 
 	// marshal the network information from the pod
 	bytes, err := json.Marshal(c.pod.Spec.HostAliases)
@@ -105,7 +105,7 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 // network lives and dies with the pod it's attached to. However, Vela
 // uses it to cleanup the network definition for the pod.
 func (c *client) RemoveNetwork(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("removing network for pod %s", b.ID)
+	logrus.Tracef("removing network for pipeline %s", b.ID)
 
 	// remove the network definition from the pod spec
 	//

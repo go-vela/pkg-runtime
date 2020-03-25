@@ -7,9 +7,11 @@ package kubernetes
 import (
 	"context"
 
+	"github.com/docker/distribution/reference"
+
 	"github.com/go-vela/types/pipeline"
 
-	"github.com/docker/distribution/reference"
+	"github.com/sirupsen/logrus"
 )
 
 const imagePatch = `
@@ -27,12 +29,16 @@ const imagePatch = `
 
 // InspectImage inspects the pipeline container image.
 func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]byte, error) {
+	logrus.Tracef("inspecting image for container %s", ctn.ID)
+
 	return nil, nil
 }
 
 // parseImage is a helper function to parse
 // the image for the provided container.
 func parseImage(s string) (string, error) {
+	logrus.Tracef("parsing image %s", s)
+
 	// create fully qualified reference
 	image, err := reference.ParseNormalizedNamed(s)
 	if err != nil {
