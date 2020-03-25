@@ -18,7 +18,7 @@ import (
 
 // CreateVolume creates the pipeline volume.
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("Creating volume for pipeline %s", b.ID)
+	logrus.Tracef("creating volume for pipeline %s", b.ID)
 
 	// create host configuration
 	c.hostConf = hostConfig(b.ID)
@@ -44,7 +44,7 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 
 // InspectVolume inspects the pipeline volume.
 func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, error) {
-	logrus.Tracef("Inspecting volume for pipeline %s", b.ID)
+	logrus.Tracef("inspecting volume for pipeline %s", b.ID)
 
 	// send API call to inspect the volume
 	//
@@ -59,7 +59,7 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 
 // RemoveVolume deletes the pipeline volume.
 func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("Removing volume for pipeline %s", b.ID)
+	logrus.Tracef("removing volume for pipeline %s", b.ID)
 
 	// send API call to remove the volume
 	//

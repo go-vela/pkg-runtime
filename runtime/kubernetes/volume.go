@@ -17,7 +17,7 @@ import (
 
 // CreateVolume creates the pipeline volume.
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("creating volume for pod %s", b.ID)
+	logrus.Tracef("creating volume for pipeline %s", b.ID)
 
 	// create the volume for the pod
 	//
@@ -51,7 +51,7 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 
 // InspectVolume inspects the pipeline volume.
 func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, error) {
-	logrus.Tracef("inspecting volume for pod %s", b.ID)
+	logrus.Tracef("inspecting volume for pipeline %s", b.ID)
 
 	// marshal the volume information from the pod
 	bytes, err := json.Marshal(c.pod.Spec.Volumes)
@@ -68,7 +68,7 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 // volume lives and dies with the pod it's attached to. However, Vela
 // uses it to cleanup the volume definition for the pod.
 func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("removing volume for pod %s", b.ID)
+	logrus.Tracef("removing volume for pipeline %s", b.ID)
 
 	// remove the volume definition from the pod spec
 	//

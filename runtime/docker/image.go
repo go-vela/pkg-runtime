@@ -7,16 +7,16 @@ package docker
 import (
 	"context"
 
-	"github.com/go-vela/types/pipeline"
-
 	"github.com/docker/distribution/reference"
+
+	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
 )
 
 // InspectImage inspects the pipeline container image.
 func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]byte, error) {
-	logrus.Tracef("Parsing image %s", ctn.Image)
+	logrus.Tracef("inspecting image for container %s", ctn.ID)
 
 	// parse image from container
 	image, err := parseImage(ctn.Image)
@@ -38,6 +38,8 @@ func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]b
 // parseImage is a helper function to parse
 // the image for the provided container.
 func parseImage(s string) (string, error) {
+	logrus.Tracef("parsing image %s", s)
+
 	// create fully qualified reference
 	//
 	// https://godoc.org/github.com/docker/distribution/reference#ParseNormalizedNamed

@@ -142,7 +142,6 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		}
 	}
 
-	logrus.Debugf("parsing image for container %s", ctn.ID)
 	// parse image from step
 	image, err := parseImage(ctn.Image)
 	if err != nil {
@@ -152,7 +151,6 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// set the pod container image to the parsed step image
 	c.pod.Spec.Containers[ctn.Number-2].Image = image
 
-	logrus.Infof("patching image for container %s", ctn.ID)
 	// send API call to patch the pod with the new container image
 	//
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
@@ -171,7 +169,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 
 // SetupContainer pulls the image for the pipeline container.
 func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("setting up for container %s", ctn.Name)
+	logrus.Tracef("setting up for container %s", ctn.ID)
 
 	// create the container object for the pod
 	//
