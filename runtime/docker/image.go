@@ -25,6 +25,8 @@ func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]b
 	}
 
 	// send API call to inspect the image
+	//
+	// https://godoc.org/github.com/docker/docker/client#Client.ImageInspectWithRaw
 	i, _, err := c.Runtime.ImageInspectWithRaw(ctx, image)
 	if err != nil {
 		return nil, err
@@ -37,11 +39,15 @@ func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]b
 // the image for the provided container.
 func parseImage(s string) (string, error) {
 	// create fully qualified reference
+	//
+	// https://godoc.org/github.com/docker/distribution/reference#ParseNormalizedNamed
 	image, err := reference.ParseNormalizedNamed(s)
 	if err != nil {
 		return "", err
 	}
 
 	// add latest tag to image if no tag was provided
+	//
+	// https://godoc.org/github.com/docker/distribution/reference#TagNameOnly
 	return reference.TagNameOnly(image).String(), nil
 }
