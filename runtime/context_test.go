@@ -10,11 +10,18 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/go-vela/types/constants"
 )
 
-func TestExecutor_FromContext(t *testing.T) {
+func TestRuntime_FromContext(t *testing.T) {
 	// setup types
-	_engine, _ := New(&Setup{})
+	_engine, err := New(&Setup{
+		Driver: constants.DriverDocker,
+	})
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
 
 	// setup tests
 	tests := []struct {
@@ -45,9 +52,14 @@ func TestExecutor_FromContext(t *testing.T) {
 	}
 }
 
-func TestExecutor_FromGinContext(t *testing.T) {
+func TestRuntime_FromGinContext(t *testing.T) {
 	// setup types
-	_engine, _ := New(&Setup{})
+	_engine, err := New(&Setup{
+		Driver: constants.DriverDocker,
+	})
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
 
 	// setup tests
 	tests := []struct {
@@ -86,9 +98,14 @@ func TestExecutor_FromGinContext(t *testing.T) {
 	}
 }
 
-func TestExecutor_WithContext(t *testing.T) {
+func TestRuntime_WithContext(t *testing.T) {
 	// setup types
-	_engine, _ := New(&Setup{})
+	_engine, err := New(&Setup{
+		Driver: constants.DriverDocker,
+	})
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
 
 	want := context.WithValue(context.Background(), key, _engine)
 
@@ -100,9 +117,14 @@ func TestExecutor_WithContext(t *testing.T) {
 	}
 }
 
-func TestExecutor_WithGinContext(t *testing.T) {
+func TestRuntime_WithGinContext(t *testing.T) {
 	// setup types
-	_engine, _ := New(&Setup{})
+	_engine, err := New(&Setup{
+		Driver: constants.DriverDocker,
+	})
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
 
 	want := new(gin.Context)
 	want.Set(key, _engine)

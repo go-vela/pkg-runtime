@@ -5,6 +5,8 @@
 package runtime
 
 import (
+	"github.com/go-vela/types/constants"
+
 	"github.com/urfave/cli"
 )
 
@@ -27,6 +29,7 @@ var Flags = []cli.Flag{
 		EnvVar: "VELA_RUNTIME_DRIVER,RUNTIME_DRIVER",
 		Name:   "runtime.driver",
 		Usage:  "name of runtime driver to use",
+		Value:  constants.DriverDocker,
 	},
 	cli.StringFlag{
 		EnvVar: "VELA_RUNTIME_CONFIG,RUNTIME_CONFIG",
