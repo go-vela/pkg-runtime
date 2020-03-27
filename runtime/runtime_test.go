@@ -10,52 +10,54 @@ import (
 	"github.com/go-vela/types/constants"
 )
 
-func TestRuntime_New_Success(t *testing.T) {
-	// setup types
-	docker, _ := New(&Setup{Driver: constants.DriverDocker})
-	kubernetes, _ := New(&Setup{Driver: constants.DriverKubernetes, Namespace: "docker", Config: "testdata/config"})
-
+func TestRuntime_New(t *testing.T) {
+	// setup tests
 	tests := []struct {
-		data *Setup
-		want Engine
+		failure bool
+		setup   *Setup
 	}{
-		{ // test for Docker runtimes
-			data: &Setup{Driver: constants.DriverDocker},
-			want: docker,
+		{
+			failure: false,
+			setup: &Setup{
+				Driver: constants.DriverDocker,
+			},
 		},
-		{ // test for Kubernetes runtime
-			data: &Setup{Driver: constants.DriverKubernetes, Namespace: "docker", Config: "testdata/config"},
-			want: kubernetes,
+		{
+			failure: false,
+			setup: &Setup{
+				Driver:    constants.DriverKubernetes,
+				Namespace: "docker",
+				Config:    "testdata/config",
+			},
+		},
+		{
+			failure: true,
+			setup: &Setup{
+				Driver: "invalid",
+			},
+		},
+		{
+			failure: true,
+			setup: &Setup{
+				Driver: "",
+			},
 		},
 	}
 
 	// run tests
 	for _, test := range tests {
-		// run test
-		_, err := New(test.data)
-		if err != nil {
-			t.Errorf("New should not have returned err: %w", err)
+		_, err := New(test.setup)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("New should have returned err")
+			}
+
+			continue
 		}
-	}
-}
 
-func TestRuntime_New_Failure(t *testing.T) {
-	tests := []struct {
-		data *Setup
-		want Engine
-	}{
-		{ // test for invalid runtimes
-			data: &Setup{Driver: "invalid"},
-			want: nil,
-		},
-	}
-
-	// run tests
-	for _, test := range tests {
-		// run test
-		_, err := New(test.data)
-		if err == nil {
-			t.Error("New should have returned err")
+		if err != nil {
+			t.Errorf("New returned err: %v", err)
 		}
 	}
 }

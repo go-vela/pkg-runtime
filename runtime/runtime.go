@@ -12,9 +12,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// New creates and returns a Vela engine capable of integrating
-// with the configured runtime environment. Currently the
-// following runtimes are supported:
+// New creates and returns a Vela engine capable of
+// integrating with the configured runtime.
+//
+// Currently the following runtimes are supported:
 //
 // * docker
 // * kubernetes
@@ -25,7 +26,7 @@ func New(s *Setup) (Engine, error) {
 		return nil, err
 	}
 
-	logrus.Debug("creating runtime client from setup")
+	logrus.Debug("creating runtime engine from setup")
 	// process the runtime driver being provided
 	switch s.Driver {
 	case constants.DriverDocker:
@@ -36,6 +37,6 @@ func New(s *Setup) (Engine, error) {
 		return s.Kubernetes()
 	default:
 		// handle an invalid runtime driver being provided
-		return nil, fmt.Errorf("invalid runtime driver provided in setup: %s", s.Driver)
+		return nil, fmt.Errorf("invalid runtime driver provided: %s", s.Driver)
 	}
 }
