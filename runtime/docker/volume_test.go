@@ -11,109 +11,122 @@ import (
 	"github.com/go-vela/types/pipeline"
 )
 
-func TestDocker_CreateVolume_Success(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.CreateVolume(context.Background(), &pipeline.Build{
-		Version: "1",
-		ID:      "__0"})
-
-	if got != nil {
-		t.Error("CreateVolume should not have returned err: ", got)
-	}
-
-	if got != nil {
-		t.Errorf("CreateVolume is %v, want nil", got)
-	}
-}
-
-// TODO: rethink how the mock is being done in the
-// router switch. This current gives false positives
-func TestDocker_CreateVolume_Failure(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.CreateVolume(context.Background(), &pipeline.Build{
-		Version: "1",
-		ID:      "__0"})
-
-	// this should be "=="
-	if got != nil {
-		t.Errorf("CreateVolume should have returned err: %+v", got)
-	}
-}
-
-func TestDocker_InspectVolume_Success(t *testing.T) {
+func TestDocker_CreateVolume(t *testing.T) {
 	// setup types
-	p := &pipeline.Build{
-		Version: "1",
-		ID:      "__0",
-	}
-
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got, err := c.InspectVolume(context.Background(), p)
+	_engine, err := NewMock()
 	if err != nil {
-		t.Errorf("InspectVolume returned err: %v", got)
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if got == nil {
-		t.Errorf("InspectVolume is nil, want %v", got)
+	// setup tests
+	tests := []struct {
+		failure  bool
+		pipeline *pipeline.Build
+	}{
+		{
+			failure:  false,
+			pipeline: _pipeline,
+		},
+		{
+			failure:  true,
+			pipeline: new(pipeline.Build),
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		err = _engine.CreateVolume(context.Background(), test.pipeline)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("CreateVolume should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("CreateVolume returned err: %v", err)
+		}
 	}
 }
 
-func TestDocker_InspectVolume_Failure(t *testing.T) {
+func TestDocker_InspectVolume(t *testing.T) {
 	// setup types
-	p := &pipeline.Build{
-		Version: "1",
-		ID:      "notfound",
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got, err := c.InspectVolume(context.Background(), p)
-	if err == nil {
-		t.Errorf("InspectVolume should have returned err")
+	// setup tests
+	tests := []struct {
+		failure  bool
+		pipeline *pipeline.Build
+	}{
+		{
+			failure:  false,
+			pipeline: _pipeline,
+		},
+		{
+			failure:  true,
+			pipeline: new(pipeline.Build),
+		},
 	}
 
-	if got != nil {
-		t.Errorf("InspectVolume is %v, want nil", got)
+	// run tests
+	for _, test := range tests {
+		_, err = _engine.InspectVolume(context.Background(), test.pipeline)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("InspectVolume should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("InspectVolume returned err: %v", err)
+		}
 	}
 }
 
-func TestDocker_RemoveVolume_Success(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.RemoveVolume(context.Background(), &pipeline.Build{
-		Version: "1",
-		ID:      "__0"})
-
-	if got != nil {
-		t.Error("RemoveVolume should not have returned err: ", got)
+func TestDocker_RemoveVolume(t *testing.T) {
+	// setup types
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if got != nil {
-		t.Errorf("RemoveVolume is %v, want nil", got)
+	// setup tests
+	tests := []struct {
+		failure  bool
+		pipeline *pipeline.Build
+	}{
+		{
+			failure:  false,
+			pipeline: _pipeline,
+		},
+		{
+			failure:  true,
+			pipeline: new(pipeline.Build),
+		},
 	}
-}
 
-func TestDocker_RemoveVolume_Failure(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
+	// run tests
+	for _, test := range tests {
+		err = _engine.RemoveVolume(context.Background(), test.pipeline)
 
-	// run test
-	got := c.RemoveVolume(context.Background(), &pipeline.Build{})
+		if test.failure {
+			if err == nil {
+				t.Errorf("RemoveVolume should have returned err")
+			}
 
-	if got == nil {
-		t.Errorf("RemoveVolume should have returned err: %+v", got)
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("RemoveVolume returned err: %v", err)
+		}
 	}
 }
