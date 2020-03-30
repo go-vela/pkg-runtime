@@ -107,7 +107,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// send API call to create the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerCreate
-	container, err := c.Runtime.ContainerCreate(
+	_, err := c.Runtime.ContainerCreate(
 		ctx,
 		c.ctnConf,
 		c.hostConf,
@@ -126,7 +126,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// send API call to start the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerStart
-	err = c.Runtime.ContainerStart(ctx, container.ID, opts)
+	err = c.Runtime.ContainerStart(ctx, ctn.ID, opts)
 	if err != nil {
 		return err
 	}

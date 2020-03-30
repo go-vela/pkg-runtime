@@ -71,6 +71,18 @@ func TestDocker_RemoveContainer(t *testing.T) {
 			failure:   true,
 			container: new(pipeline.Container),
 		},
+		{
+			failure: true,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_ignorenotfound",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:v0.3.0",
+				Name:        "ignorenotfound",
+				Number:      2,
+				Pull:        true,
+			},
+		},
 	}
 
 	// run tests
@@ -101,16 +113,17 @@ func TestDocker_RunContainer(t *testing.T) {
 	// setup tests
 	tests := []struct {
 		failure   bool
-		container *pipeline.Container
 		pipeline  *pipeline.Build
+		container *pipeline.Container
 	}{
 		{
 			failure:   false,
-			container: _container,
 			pipeline:  _pipeline,
+			container: _container,
 		},
 		{
-			failure: false,
+			failure:  false,
+			pipeline: _pipeline,
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_echo",
 				Commands:    []string{"echo", "hello"},
@@ -122,12 +135,24 @@ func TestDocker_RunContainer(t *testing.T) {
 				Number:      2,
 				Pull:        true,
 			},
-			pipeline: _pipeline,
 		},
 		{
 			failure:   true,
-			container: new(pipeline.Container),
 			pipeline:  _pipeline,
+			container: new(pipeline.Container),
+		},
+		{
+			failure:  true,
+			pipeline: _pipeline,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_ignorenotfound",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:v0.3.0",
+				Name:        "ignorenotfound",
+				Number:      2,
+				Pull:        true,
+			},
 		},
 	}
 
@@ -172,6 +197,18 @@ func TestDocker_SetupContainer(t *testing.T) {
 				Directory:   "/home/github/octocat",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:v0.3.0",
+				Name:        "clone",
+				Number:      2,
+				Pull:        false,
+			},
+		},
+		{
+			failure: false,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_clone",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:ignorenotfound",
 				Name:        "clone",
 				Number:      2,
 				Pull:        false,
