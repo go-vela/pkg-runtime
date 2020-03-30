@@ -77,8 +77,8 @@ github.com/go-playground/universal-translator v0.17.0 h1:icxd5fm+REJzpZx7ZfpaD87
 github.com/go-playground/universal-translator v0.17.0/go.mod h1:UkSxE5sNxxRwHyU+Scu5vgOQjsIJAF8j9muTVoKLVtA=
 github.com/go-vela/compiler v0.3.1-0.20200302143952-6a5a26ba1fbc h1:5vV0CxQfESnkQ+Tfc45JnjKl5QPbgpaOCupsKB/mpQg=
 github.com/go-vela/compiler v0.3.1-0.20200302143952-6a5a26ba1fbc/go.mod h1:rO03l8MoeyQkhd450SnphZquB7l7Qs+cT/3BIVq8MfE=
-github.com/go-vela/mock v0.3.1-0.20200327201328-533b0d73a6d3 h1:nLNS0pxP3dUOP/K22NBbxjyFpRhFPWgoYHTcDhafbhQ=
-github.com/go-vela/mock v0.3.1-0.20200327201328-533b0d73a6d3/go.mod h1:NEOd1uO5PQDxXnlaFWdxtmNmlTZq2l276BPHhmthTJk=
+github.com/go-vela/mock v0.3.1-0.20200330162331-99c39325ff38 h1:IImUUJF4t0f/RVAh4K1uzzQtwaJLO01prIZjd8z3r54=
+github.com/go-vela/mock v0.3.1-0.20200330162331-99c39325ff38/go.mod h1:NEOd1uO5PQDxXnlaFWdxtmNmlTZq2l276BPHhmthTJk=
 github.com/go-vela/types v0.3.0/go.mod h1:LNDrn7/nV38H0HmRfYv6YfPNb881R5NRE1YKXeVqpF4=
 github.com/go-vela/types v0.3.1-0.20200228213236-820f8df3a782 h1:5+2BLMClLg+o6mky5G0xRTfw/15zOyyZhJKWp726vu4=
 github.com/go-vela/types v0.3.1-0.20200228213236-820f8df3a782/go.mod h1:LNDrn7/nV38H0HmRfYv6YfPNb881R5NRE1YKXeVqpF4=
