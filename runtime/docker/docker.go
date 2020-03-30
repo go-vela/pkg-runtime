@@ -8,8 +8,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	docker "github.com/docker/docker/client"
-	"github.com/go-vela/pkg-runtime/runtime/docker/testdata/mock"
-	"github.com/sirupsen/logrus"
+
+	mock "github.com/go-vela/mock/docker"
 )
 
 // expected version for the Docker API
@@ -44,10 +44,7 @@ func New() (*client, error) {
 	// but this ensures the version of client being used
 	//
 	// https://godoc.org/github.com/docker/docker/client#WithVersion
-	err = docker.WithVersion(version)(_docker)
-	if err != nil {
-		return nil, err
-	}
+	_ = docker.WithVersion(version)(_docker)
 
 	return &client{
 		Runtime:  _docker,
@@ -62,14 +59,8 @@ func New() (*client, error) {
 //
 // This function is intended for running tests only.
 func NewMock() (*client, error) {
-	// create mock client
-	mock := mock.Client(mock.Router)
-
 	// create Docker client from the mock client
-	_docker, err := docker.NewClient("tcp://127.0.0.1:2333", version, mock, nil)
-	if err != nil {
-		logrus.Fatal(err)
-	}
+	_docker, _ := mock.New()
 
 	// create the client object
 	c := &client{

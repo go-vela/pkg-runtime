@@ -11,109 +11,122 @@ import (
 	"github.com/go-vela/types/pipeline"
 )
 
-func TestDocker_CreateNetwork_Success(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.CreateNetwork(context.Background(), &pipeline.Build{
-		Version: "1",
-		ID:      "__0"})
-
-	if got != nil {
-		t.Error("CreateNetwork should not have returned err: ", got)
-	}
-
-	if got != nil {
-		t.Errorf("CreateNetwork is %v, want nil", got)
-	}
-}
-
-// TODO: rethink how the mock is being done in the
-// router switch. This current gives false positives
-func TestDocker_CreateNetwork_Failure(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.CreateNetwork(context.Background(), &pipeline.Build{
-		Version: "1",
-		ID:      "__0"})
-
-	// this should be "=="
-	if got != nil {
-		t.Errorf("CreateNetwork should have returned err: %+v", got)
-	}
-}
-
-func TestDocker_InspectNetwork_Success(t *testing.T) {
+func TestDocker_CreateNetwork(t *testing.T) {
 	// setup types
-	p := &pipeline.Build{
-		Version: "1",
-		ID:      "__0",
-	}
-
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got, err := c.InspectNetwork(context.Background(), p)
+	_engine, err := NewMock()
 	if err != nil {
-		t.Errorf("InspectNetwork returned err: %v", err)
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if got == nil {
-		t.Errorf("InspectNetwork is nil, want %v", got)
+	// setup tests
+	tests := []struct {
+		failure  bool
+		pipeline *pipeline.Build
+	}{
+		{
+			failure:  false,
+			pipeline: _pipeline,
+		},
+		{
+			failure:  true,
+			pipeline: new(pipeline.Build),
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		err = _engine.CreateNetwork(context.Background(), test.pipeline)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("CreateNetwork should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("CreateNetwork returned err: %v", err)
+		}
 	}
 }
 
-func TestDocker_InspectNetwork_Failure(t *testing.T) {
+func TestDocker_InspectNetwork(t *testing.T) {
 	// setup types
-	p := &pipeline.Build{
-		Version: "1",
-		ID:      "notfound",
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got, err := c.InspectNetwork(context.Background(), p)
-	if err == nil {
-		t.Errorf("InspectNetwork should have returned err")
+	// setup tests
+	tests := []struct {
+		failure  bool
+		pipeline *pipeline.Build
+	}{
+		{
+			failure:  false,
+			pipeline: _pipeline,
+		},
+		{
+			failure:  true,
+			pipeline: new(pipeline.Build),
+		},
 	}
 
-	if got != nil {
-		t.Errorf("InspectNetwork is %v, want nil", got)
+	// run tests
+	for _, test := range tests {
+		_, err = _engine.InspectNetwork(context.Background(), test.pipeline)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("InspectNetwork should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("InspectNetwork returned err: %v", err)
+		}
 	}
 }
 
-func TestDocker_RemoveNetwork_Success(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.RemoveNetwork(context.Background(), &pipeline.Build{
-		Version: "1",
-		ID:      "__0"})
-
-	if got != nil {
-		t.Error("RemoveNetwork should not have returned err: ", got)
+func TestDocker_RemoveNetwork(t *testing.T) {
+	// setup types
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if got != nil {
-		t.Errorf("RemoveNetwork is %v, want nil", got)
+	// setup tests
+	tests := []struct {
+		failure  bool
+		pipeline *pipeline.Build
+	}{
+		{
+			failure:  false,
+			pipeline: _pipeline,
+		},
+		{
+			failure:  true,
+			pipeline: new(pipeline.Build),
+		},
 	}
-}
 
-func TestDocker_RemoveNetwork_Failure(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
+	// run tests
+	for _, test := range tests {
+		err = _engine.RemoveNetwork(context.Background(), test.pipeline)
 
-	// run test
-	got := c.RemoveNetwork(context.Background(), &pipeline.Build{})
+		if test.failure {
+			if err == nil {
+				t.Errorf("RemoveNetwork should have returned err")
+			}
 
-	if got == nil {
-		t.Errorf("RemoveNetwork should have returned err: %+v", got)
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("RemoveNetwork returned err: %v", err)
+		}
 	}
 }

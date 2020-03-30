@@ -11,246 +11,293 @@ import (
 	"github.com/go-vela/types/pipeline"
 )
 
-func TestDocker_InspectContainer_Success(t *testing.T) {
+func TestDocker_InspectContainer(t *testing.T) {
 	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.InspectContainer(context.Background(), &pipeline.Container{
-		ID:          "container_id",
-		Image:       "alpine:latest",
-		Environment: map[string]string{"foo": "bar"},
-		Entrypoint:  []string{"/bin/sh", "-c"},
-		Commands:    []string{""},
-		Pull:        true,
-	})
-
-	if got != nil {
-		t.Error("InspectContainer should not have returned err: ", got)
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if got != nil {
-		t.Errorf("InspectContainer is %v, want nil", got)
-	}
-}
-
-func TestDocker_InspectContainer_Failure(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.InspectContainer(context.Background(), &pipeline.Container{})
-
-	if got == nil {
-		t.Errorf("InspectContainer should have returned err: %+v", got)
-	}
-}
-
-func TestDocker_RemoveContainer_Success(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.RemoveContainer(context.Background(), &pipeline.Container{
-		ID:          "container_id",
-		Image:       "alpine:latest",
-		Environment: map[string]string{"foo": "bar"},
-		Entrypoint:  []string{"/bin/sh", "-c"},
-		Commands:    []string{""},
-		Pull:        true,
-	})
-
-	if got != nil {
-		t.Error("RemoveContainer should not have returned err: ", got)
-	}
-
-	if got != nil {
-		t.Errorf("RemoveContainer is %v, want nil", got)
-	}
-}
-
-func TestDocker_RemoveContainer_Failure(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.RemoveContainer(context.Background(), &pipeline.Container{})
-
-	if got == nil {
-		t.Errorf("RemoveContainer should have returned err: %+v", got)
-	}
-}
-
-func TestDocker_RunContainer_Success(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.RunContainer(context.Background(),
-		&pipeline.Container{
-			ID:          "container_id",
-			Image:       "alpine:latest",
-			Environment: map[string]string{"foo": "bar"},
-			Entrypoint:  []string{"/bin/sh", "-c"},
-			Commands:    []string{""},
-			Pull:        true,
-		},
-		&pipeline.Build{
-			Version: "1",
-			ID:      "__0",
-		})
-
-	if got != nil {
-		t.Error("RunContainer should not have returned err: ", got)
-	}
-
-	if got != nil {
-		t.Errorf("RunContainer is %v, want nil", got)
-	}
-}
-
-// TODO: rethink how the mock is being done in the
-// router switch. This current gives false positives
-func TestDocker_RunContainer_Failure(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.RunContainer(context.Background(),
-		&pipeline.Container{},
-		&pipeline.Build{})
-
-	// this should be "=="
-	if got != nil {
-		t.Errorf("RunContainer should have returned err: %+v", got)
-	}
-}
-
-func TestDocker_SetupContainer_Success(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
-
-	// setup types
+	// setup tests
 	tests := []struct {
+		failure   bool
 		container *pipeline.Container
-		want      error
 	}{
-		{ // test container with pull policy
-			container: &pipeline.Container{
-				ID:          "container_id",
-				Image:       "alpine:latest",
-				Environment: map[string]string{"foo": "bar"},
-				Entrypoint:  []string{"/bin/sh", "-c"},
-				Commands:    []string{""},
-				Pull:        true,
-			},
-			want: nil,
+		{
+			failure:   false,
+			container: _container,
 		},
-
-		{ // test container with out pull policy
-			container: &pipeline.Container{
-				ID:          "container_id",
-				Image:       "alpine:notfound",
-				Environment: map[string]string{"foo": "bar"},
-				Entrypoint:  []string{"/bin/sh", "-c"},
-				Commands:    []string{""},
-			},
-			want: nil,
+		{
+			failure:   true,
+			container: new(pipeline.Container),
 		},
 	}
 
 	// run tests
 	for _, test := range tests {
-		// run test
-		got := c.SetupContainer(context.Background(), test.container)
+		err = _engine.InspectContainer(context.Background(), test.container)
 
-		if got != test.want {
-			t.Errorf("SetupContainer is %v, want nil", got)
+		if test.failure {
+			if err == nil {
+				t.Errorf("InspectContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("InspectContainer returned err: %v", err)
 		}
 	}
 }
 
-func TestDocker_SetupContainer_Failure(t *testing.T) {
+func TestDocker_RemoveContainer(t *testing.T) {
 	// setup Docker
-	c, _ := NewMock()
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
 
-	// run test
-	got := c.SetupContainer(context.Background(), &pipeline.Container{})
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+		{
+			failure:   true,
+			container: new(pipeline.Container),
+		},
+		{
+			failure: true,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_ignorenotfound",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:v0.3.0",
+				Name:        "ignorenotfound",
+				Number:      2,
+				Pull:        true,
+			},
+		},
+	}
 
-	if got == nil {
-		t.Errorf("SetupContainer should have returned err: %+v", got)
+	// run tests
+	for _, test := range tests {
+		err = _engine.RemoveContainer(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("RemoveContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("RemoveContainer returned err: %v", err)
+		}
 	}
 }
 
-func TestDocker_TailContainer_Success(t *testing.T) {
+func TestDocker_RunContainer(t *testing.T) {
 	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	_, got := c.TailContainer(context.Background(), &pipeline.Container{
-		ID:          "container_id",
-		Image:       "alpine:latest",
-		Environment: map[string]string{"foo": "bar"},
-		Entrypoint:  []string{"/bin/sh", "-c"},
-		Commands:    []string{""},
-		Pull:        true,
-	})
-
-	if got != nil {
-		t.Error("TailContainer should not have returned err: ", got)
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if got != nil {
-		t.Errorf("TailContainer is %v, want nil", got)
+	// setup tests
+	tests := []struct {
+		failure   bool
+		pipeline  *pipeline.Build
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			pipeline:  _pipeline,
+			container: _container,
+		},
+		{
+			failure:  false,
+			pipeline: _pipeline,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_echo",
+				Commands:    []string{"echo", "hello"},
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Entrypoint:  []string{"/bin/sh", "-c"},
+				Image:       "alpine:latest",
+				Name:        "echo",
+				Number:      2,
+				Pull:        true,
+			},
+		},
+		{
+			failure:   true,
+			pipeline:  _pipeline,
+			container: new(pipeline.Container),
+		},
+		{
+			failure:  true,
+			pipeline: _pipeline,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_ignorenotfound",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:v0.3.0",
+				Name:        "ignorenotfound",
+				Number:      2,
+				Pull:        true,
+			},
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		err = _engine.RunContainer(context.Background(), test.container, test.pipeline)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("RunContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("RunContainer returned err: %v", err)
+		}
 	}
 }
 
-// TODO: rethink how the mock is being done in the
-// router switch. This current gives false positives
-func TestDocker_TailContainer_Failure(t *testing.T) {
+func TestDocker_SetupContainer(t *testing.T) {
 	// setup Docker
-	c, _ := NewMock()
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
 
-	// run test
-	_, got := c.TailContainer(context.Background(), &pipeline.Container{})
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+		{
+			failure: false,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_clone",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:v0.3.0",
+				Name:        "clone",
+				Number:      2,
+				Pull:        false,
+			},
+		},
+		{
+			failure: false,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_clone",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:ignorenotfound",
+				Name:        "clone",
+				Number:      2,
+				Pull:        false,
+			},
+		},
+		{
+			failure:   true,
+			container: new(pipeline.Container),
+		},
+		{
+			failure: true,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_clone",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:notfound",
+				Name:        "clone",
+				Number:      2,
+				Pull:        true,
+			},
+		},
+		{
+			failure: true,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_clone",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:notfound",
+				Name:        "clone",
+				Number:      2,
+				Pull:        false,
+			},
+		},
+	}
 
-	// this should be "=="
-	if got != nil {
-		t.Errorf("TailContainer should have returned err: %+v", got)
+	// run tests
+	for _, test := range tests {
+		err = _engine.SetupContainer(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("SetupContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("SetupContainer returned err: %v", err)
+		}
 	}
 }
 
-func TestDocker_WaitContainer_Success(t *testing.T) {
+func TestDocker_TailContainer(t *testing.T) {
 	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got := c.WaitContainer(context.Background(), &pipeline.Container{
-		ID:          "container_id",
-		Image:       "alpine:latest",
-		Environment: map[string]string{"foo": "bar"},
-		Entrypoint:  []string{"/bin/sh", "-c"},
-		Commands:    []string{""},
-		Pull:        true,
-	})
-
-	if got != nil {
-		t.Error("WaitContainer should not have returned err: ", got)
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if got != nil {
-		t.Errorf("WaitContainer is %v, want nil", got)
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+		{
+			failure:   true,
+			container: new(pipeline.Container),
+		},
 	}
-}
 
-func TestDocker_WaitContainer_Failure(t *testing.T) {
-	// setup Docker
-	c, _ := NewMock()
+	// run tests
+	for _, test := range tests {
+		_, err = _engine.TailContainer(context.Background(), test.container)
 
-	// run test
-	got := c.WaitContainer(context.Background(), &pipeline.Container{})
+		if test.failure {
+			if err == nil {
+				t.Errorf("TailContainer should have returned err")
+			}
 
-	if got == nil {
-		t.Errorf("WaitContainer should have returned err: %+v", got)
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("TailContainer returned err: %v", err)
+		}
 	}
 }

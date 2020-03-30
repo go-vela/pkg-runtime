@@ -13,63 +13,52 @@ import (
 
 func TestDocker_InspectImage(t *testing.T) {
 	// setup types
-	p := &pipeline.Container{
-		ID:    "container_id",
-		Image: "alpine:latest",
-	}
-
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got, err := c.InspectImage(context.Background(), p)
-
+	_engine, err := NewMock()
 	if err != nil {
-		t.Errorf("InspectImage returned err: %v", err)
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if got == nil {
-		t.Errorf("InspectImage is nil, want %v", got)
-	}
-}
-
-func TestDocker_InspectImage_BadImage(t *testing.T) {
-	// setup types
-	p := &pipeline.Container{
-		ID:    "container_id",
-		Image: "alpine:notfound",
-	}
-
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got, err := c.InspectImage(context.Background(), p)
-
-	if err == nil {
-		t.Errorf("InspectImage should have returned err")
-	}
-
-	if got != nil {
-		t.Errorf("InspectImage is %v, want nil", got)
-	}
-}
-
-func TestDocker_InspectImage_NoImage(t *testing.T) {
-	// setup types
-	p := new(pipeline.Container)
-
-	// setup Docker
-	c, _ := NewMock()
-
-	// run test
-	got, err := c.InspectImage(context.Background(), p)
-
-	if err == nil {
-		t.Errorf("InspectImage should have returned err")
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+		{
+			failure:   true,
+			container: new(pipeline.Container),
+		},
+		{
+			failure: true,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_clone",
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:notfound",
+				Name:        "clone",
+				Number:      2,
+				Pull:        true,
+			},
+		},
 	}
 
-	if got != nil {
-		t.Errorf("InspectImage is %v, want nil", got)
+	// run tests
+	for _, test := range tests {
+		_, err = _engine.InspectImage(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("InspectImage should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("InspectImage returned err: %v", err)
+		}
 	}
 }

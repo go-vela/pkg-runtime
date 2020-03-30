@@ -107,7 +107,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// send API call to create the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerCreate
-	container, err := c.Runtime.ContainerCreate(
+	_, err := c.Runtime.ContainerCreate(
 		ctx,
 		c.ctnConf,
 		c.hostConf,
@@ -126,7 +126,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// send API call to start the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerStart
-	err = c.Runtime.ContainerStart(ctx, container.ID, opts)
+	err = c.Runtime.ContainerStart(ctx, ctn.ID, opts)
 	if err != nil {
 		return err
 	}
@@ -240,6 +240,18 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 
 	// capture all stdout and stderr logs
 	go func() {
+		// defer closing all buffers
+		defer func() {
+			// close logs buffer
+			logs.Close()
+
+			// close in-memory pipe write closer
+			wc.Close()
+
+			// close in-memory pipe read closer
+			rc.Close()
+		}()
+
 		// copy container stdout and stderr logs to our in-memory pipe
 		//
 		// https://godoc.org/github.com/docker/docker/pkg/stdcopy#StdCopy
@@ -247,11 +259,6 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		if err != nil {
 			logrus.Errorf("unable to copy logs for container: %v", err)
 		}
-
-		// close all buffers
-		logs.Close()
-		wc.Close()
-		rc.Close()
 	}()
 
 	return rc, nil
@@ -265,6 +272,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerWait
 	wait, errC := c.Runtime.ContainerWait(ctx, ctn.ID, container.WaitConditionNotRunning)
+
 	select {
 	case <-wait:
 	case err := <-errC:
