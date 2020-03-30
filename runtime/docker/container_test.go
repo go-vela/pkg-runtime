@@ -301,3 +301,43 @@ func TestDocker_TailContainer(t *testing.T) {
 		}
 	}
 }
+
+func TestDocker_WaitContainer(t *testing.T) {
+	// setup Docker
+	_engine, err := NewMock()
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
+
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+		{
+			failure:   true,
+			container: new(pipeline.Container),
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		err = _engine.WaitContainer(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("WaitContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("WaitContainer returned err: %v", err)
+		}
+	}
+}
