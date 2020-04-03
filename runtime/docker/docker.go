@@ -17,7 +17,7 @@ const version = "1.38"
 
 type client struct {
 	// https://godoc.org/github.com/docker/docker/client#CommonAPIClient
-	Runtime docker.CommonAPIClient
+	docker docker.CommonAPIClient
 
 	// https://godoc.org/github.com/docker/docker/api/types/container#Config
 	ctnConf *container.Config
@@ -47,7 +47,7 @@ func New() (*client, error) {
 	_ = docker.WithVersion(version)(_docker)
 
 	return &client{
-		Runtime:  _docker,
+		docker:   _docker,
 		ctnConf:  new(container.Config),
 		hostConf: new(container.HostConfig),
 		netConf:  new(network.NetworkingConfig),
@@ -64,7 +64,7 @@ func NewMock() (*client, error) {
 
 	// create the client object
 	c := &client{
-		Runtime: _docker,
+		docker: _docker,
 	}
 
 	return c, nil

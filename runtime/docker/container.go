@@ -27,7 +27,7 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 	// send API call to inspect the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerInspect
-	container, err := c.Runtime.ContainerInspect(ctx, ctn.ID)
+	container, err := c.docker.ContainerInspect(ctx, ctn.ID)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 	// send API call to inspect the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerInspect
-	container, err := c.Runtime.ContainerInspect(ctx, ctn.ID)
+	container, err := c.docker.ContainerInspect(ctx, ctn.ID)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 		// send API call to kill the container
 		//
 		// https://godoc.org/github.com/docker/docker/client#Client.ContainerKill
-		err := c.Runtime.ContainerKill(ctx, ctn.ID, "SIGKILL")
+		err := c.docker.ContainerKill(ctx, ctn.ID, "SIGKILL")
 		if err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 	// send API call to remove the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerRemove
-	err = c.Runtime.ContainerRemove(ctx, ctn.ID, opts)
+	err = c.docker.ContainerRemove(ctx, ctn.ID, opts)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// send API call to create the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerCreate
-	_, err := c.Runtime.ContainerCreate(
+	_, err := c.docker.ContainerCreate(
 		ctx,
 		c.ctnConf,
 		c.hostConf,
@@ -126,7 +126,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// send API call to start the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerStart
-	err = c.Runtime.ContainerStart(ctx, ctn.ID, opts)
+	err = c.docker.ContainerStart(ctx, ctn.ID, opts)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		// send API call to pull the image for the container
 		//
 		// https://godoc.org/github.com/docker/docker/client#Client.ImagePull
-		reader, err := c.Runtime.ImagePull(ctx, image, opts)
+		reader, err := c.docker.ImagePull(ctx, image, opts)
 		if err != nil {
 			return err
 		}
@@ -173,7 +173,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	// check if the container image exists on the host
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ImageInspectWithRaw
-	_, _, err = c.Runtime.ImageInspectWithRaw(ctx, image)
+	_, _, err = c.docker.ImageInspectWithRaw(ctx, image)
 	if err == nil {
 		return nil
 	}
@@ -191,7 +191,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		// send API call to pull the image for the container
 		//
 		// https://godoc.org/github.com/docker/docker/client#Client.ImagePull
-		reader, err := c.Runtime.ImagePull(ctx, image, opts)
+		reader, err := c.docker.ImagePull(ctx, image, opts)
 		if err != nil {
 			return err
 		}
@@ -228,7 +228,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 	// send API call to capture the container logs
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerLogs
-	logs, err := c.Runtime.ContainerLogs(ctx, ctn.ID, opts)
+	logs, err := c.docker.ContainerLogs(ctx, ctn.ID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 	// send API call to wait for the container completion
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerWait
-	wait, errC := c.Runtime.ContainerWait(ctx, ctn.ID, container.WaitConditionNotRunning)
+	wait, errC := c.docker.ContainerWait(ctx, ctn.ID, container.WaitConditionNotRunning)
 
 	select {
 	case <-wait:

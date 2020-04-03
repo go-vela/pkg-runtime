@@ -27,7 +27,7 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 	// send API call to create the network
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.NetworkCreate
-	_, err := c.Runtime.NetworkCreate(ctx, b.ID, opts)
+	_, err := c.docker.NetworkCreate(ctx, b.ID, opts)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 	// send API call to inspect the network
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.NetworkInspect
-	n, err := c.Runtime.NetworkInspect(ctx, b.ID, opts)
+	n, err := c.docker.NetworkInspect(ctx, b.ID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (c *client) RemoveNetwork(ctx context.Context, b *pipeline.Build) error {
 	// send API call to remove the network
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.NetworkRemove
-	err := c.Runtime.NetworkRemove(ctx, b.ID)
+	err := c.docker.NetworkRemove(ctx, b.ID)
 	if err != nil {
 		return err
 	}
