@@ -34,7 +34,7 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	// send API call to create the volume
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.VolumeCreate
-	_, err := c.Runtime.VolumeCreate(ctx, opts)
+	_, err := c.docker.VolumeCreate(ctx, opts)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 	// send API call to inspect the volume
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.VolumeInspect
-	v, err := c.Runtime.VolumeInspect(ctx, b.ID)
+	v, err := c.docker.VolumeInspect(ctx, b.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	// send API call to remove the volume
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.VolumeRemove
-	err := c.Runtime.VolumeRemove(ctx, b.ID, true)
+	err := c.docker.VolumeRemove(ctx, b.ID, true)
 	if err != nil {
 		return err
 	}
