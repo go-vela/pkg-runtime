@@ -14,7 +14,7 @@ import (
 )
 
 type client struct {
-	Runtime kubernetes.Interface
+	kubernetes kubernetes.Interface
 
 	namespace string
 	pod       *v1.Pod
@@ -33,7 +33,7 @@ func New(namespace, path string) (*client, error) {
 	}
 
 	// creates Kubernetes client from configuration
-	r, err := kubernetes.NewForConfig(config)
+	_kubernetes, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func New(namespace, path string) (*client, error) {
 		pod: &v1.Pod{
 			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		},
-		Runtime: r,
+		kubernetes: _kubernetes,
 	}, nil
 }
 
@@ -58,6 +58,6 @@ func NewMock(namespace string, objects ...runtime.Object) (*client, error) {
 		pod: &v1.Pod{
 			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		},
-		Runtime: fake.NewSimpleClientset(objects...),
+		kubernetes: fake.NewSimpleClientset(objects...),
 	}, nil
 }
