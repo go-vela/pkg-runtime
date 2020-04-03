@@ -6,264 +6,209 @@ package kubernetes
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/go-vela/types/pipeline"
+
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestKubernetes_InspectContainer(t *testing.T) {
-	want := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "go-vela-pkg-runtime-1",
-			Namespace: "test",
-		},
-		Status: v1.PodStatus{
-			Phase: v1.PodRunning,
-			ContainerStatuses: []v1.ContainerStatus{
-				{
-					Name: "step---1-init",
-					State: v1.ContainerState{
-						Terminated: &v1.ContainerStateTerminated{
-							Reason:   "Completed",
-							ExitCode: 0,
-						},
-					},
-				},
-				{
-					Name: "step---2-clone",
-					State: v1.ContainerState{
-						Terminated: &v1.ContainerStateTerminated{
-							Reason:   "Completed",
-							ExitCode: 0,
-						},
-					},
-				},
-				{
-					Name: "step---3-echo",
-					State: v1.ContainerState{
-						Terminated: &v1.ContainerStateTerminated{
-							Reason:   "Completed",
-							ExitCode: 0,
-						},
-					},
-				},
-			},
-		},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  "step---1-init",
-					Image: "no-op",
-				},
-				{
-					Name:  "step---2-clone",
-					Image: "target/vela-git:latest",
-				},
-				{
-					Name:  "step---3-echo",
-					Image: "alpine:latest",
-				},
-			},
-		},
-	}
-
 	// setup types
-	c := &pipeline.Container{
-		ID:         "step---3-echo",
-		Commands:   []string{"echo $VELA_BUILD_SCRIPT | base64 -d | /bin/sh -e"},
-		Directory:  "/home//",
-		Entrypoint: []string{"/bin/sh", "-c"},
-		Image:      "alpine:latest",
-		Name:       "echo",
-		Number:     3,
+	_engine, err := NewMock(_pod)
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	// setup kubernetes
-	r, _ := NewMock("test", want)
-	r.pod = want
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+		{
+			failure:   false,
+			container: new(pipeline.Container),
+		},
+	}
 
-	// run test
-	err := r.InspectContainer(context.Background(), c)
-	if err != nil {
-		t.Errorf("InspectContainer should not have returned err: %w", err)
+	// run tests
+	for _, test := range tests {
+		err = _engine.InspectContainer(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("InspectContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("InspectContainer returned err: %v", err)
+		}
 	}
 }
 
 func TestKubernetes_RemoveContainer(t *testing.T) {
 	// setup types
-	want := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "go-vela-pkg-runtime-1",
-			Namespace: "test",
-		},
-		Status: v1.PodStatus{
-			Phase: v1.PodRunning,
-			ContainerStatuses: []v1.ContainerStatus{
-				{
-					Name: "step---1-init",
-					State: v1.ContainerState{
-						Terminated: &v1.ContainerStateTerminated{
-							Reason:   "Completed",
-							ExitCode: 0,
-						},
-					},
-				},
-				{
-					Name: "step---2-clone",
-					State: v1.ContainerState{
-						Terminated: &v1.ContainerStateTerminated{
-							Reason:   "Completed",
-							ExitCode: 0,
-						},
-					},
-				},
-				{
-					Name: "step---3-echo",
-					State: v1.ContainerState{
-						Terminated: &v1.ContainerStateTerminated{
-							Reason:   "Completed",
-							ExitCode: 0,
-						},
-					},
-				},
-			},
-		},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  "step---1-init",
-					Image: "no-op",
-				},
-				{
-					Name:  "step---2-clone",
-					Image: "target/vela-git:latest",
-				},
-				{
-					Name:  "step---3-echo",
-					Image: "alpine:latest",
-				},
-			},
-		},
-	}
-
-	b := &pipeline.Container{
-		ID:         "step---3-echo",
-		Commands:   []string{"echo $VELA_BUILD_SCRIPT | base64 -d | /bin/sh -e"},
-		Directory:  "/home//",
-		Entrypoint: []string{"/bin/sh", "-c"},
-		Image:      "alpine:latest",
-		Name:       "echo",
-		Number:     3,
-	}
-
-	// setup kubernetes
-	r, _ := NewMock("test", want)
-	r.pod = want
-
-	// run test
-	err := r.RemoveContainer(context.Background(), b)
+	_engine, err := NewMock(_pod)
 	if err != nil {
-		t.Errorf("RemoveContainer should not have returned err: %w", err)
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
+
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		err = _engine.RemoveContainer(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("RemoveContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("RemoveContainer returned err: %v", err)
+		}
 	}
 }
 
 func TestKubernetes_RunContainer(t *testing.T) {
-	// setup kubernetes
-	want := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "test",
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+		pipeline  *pipeline.Build
+		pod       *v1.Pod
+	}{
+		{
+			failure:   false,
+			container: _container,
+			pipeline:  _stages,
+			pod:       _pod,
 		},
-		Status: v1.PodStatus{
-			Phase: v1.PodRunning,
-			ContainerStatuses: []v1.ContainerStatus{
-				{
-					Name:  "step---1-init",
-					State: v1.ContainerState{},
+		{
+			failure:   false,
+			container: _container,
+			pipeline:  _steps,
+			pod:       _pod,
+		},
+		{
+			failure:   false,
+			container: _container,
+			pipeline:  _steps,
+			pod: &v1.Pod{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Pod",
 				},
-				{
-					Name:  "step---2-clone",
-					State: v1.ContainerState{},
-				},
-				{
-					Name:  "step---3-echo",
-					State: v1.ContainerState{},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name:            "step-github-octocat-1-clone",
+							Image:           "target/vela-git:v0.3.0",
+							WorkingDir:      "/home/github/octocat",
+							ImagePullPolicy: v1.PullAlways,
+						},
+						{
+							Name:            "step-github-octocat-1-echo",
+							Image:           "alpine:latest",
+							WorkingDir:      "/home/github/octocat",
+							ImagePullPolicy: v1.PullAlways,
+						},
+					},
 				},
 			},
 		},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  "step---1-init",
-					Image: "no-op",
-				},
-				{
-					Name:  "step---2-clone",
-					Image: "target/vela-git:latest",
-				},
-				{
-					Name:  "step---3-echo",
-					Image: "alpine:latest",
-				},
-			},
-		},
 	}
 
-	r, _ := NewMock("test", want)
+	// run tests
+	for _, test := range tests {
+		_engine, err := NewMock(test.pod)
+		if err != nil {
+			t.Errorf("unable to create runtime engine: %v", err)
+		}
 
-	// setup types
-	b := &pipeline.Build{
-		Version: "1",
-		ID:      "__0",
-	}
+		err = _engine.RunContainer(context.Background(), test.container, test.pipeline)
 
-	r.pod = want
+		if test.failure {
+			if err == nil {
+				t.Errorf("RunContainer should have returned err")
+			}
 
-	// setup types
-	c := &pipeline.Container{
-		ID:         "step---3-echo",
-		Commands:   []string{"echo $VELA_BUILD_SCRIPT | base64 -d | /bin/sh -e"},
-		Directory:  "/home//",
-		Entrypoint: []string{"/bin/sh", "-c"},
-		Image:      "alpine:latest",
-		Name:       "echo",
-		Number:     3,
-	}
+			continue
+		}
 
-	// run test
-	err := r.RunContainer(context.Background(), c, b)
-	if err != nil {
-		t.Errorf("RunContainer should not have returned err: %w", err)
+		if err != nil {
+			t.Errorf("RunContainer returned err: %v", err)
+		}
 	}
 }
 
 func TestKubernetes_SetupContainer(t *testing.T) {
 	// setup types
-	c := &pipeline.Container{
-		ID:          "step---3-echo",
-		Commands:    []string{"echo $VELA_BUILD_SCRIPT | base64 -d | /bin/sh -e"},
-		Directory:   "/home//",
-		Entrypoint:  []string{"/bin/sh", "-c"},
-		Environment: map[string]string{"foo": "bar"},
-		Image:       "alpine:latest",
-		Name:        "echo",
-		Number:      3,
-	}
-
-	// setup kubernetes
-	r, _ := NewMock("test", &v1.Pod{})
-	want := r.pod
-
-	// run test
-	err := r.SetupContainer(context.Background(), c)
+	_engine, err := NewMock(_pod)
 	if err != nil {
-		t.Errorf("SetupContainer should not have returned err: %w", err)
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if !reflect.DeepEqual(r.pod, want) {
-		t.Errorf("Pod is %v, want %v", r.pod, want)
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+		{
+			failure: false,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_echo",
+				Commands:    []string{"echo", "hello"},
+				Directory:   "/home/github/octocat",
+				Environment: map[string]string{"FOO": "bar"},
+				Entrypoint:  []string{"/bin/sh", "-c"},
+				Image:       "alpine:latest",
+				Name:        "echo",
+				Number:      2,
+				Pull:        true,
+			},
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		err = _engine.SetupContainer(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("SetupContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("SetupContainer returned err: %v", err)
+		}
 	}
 }
 

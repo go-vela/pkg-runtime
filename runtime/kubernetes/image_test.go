@@ -9,29 +9,40 @@ import (
 	"testing"
 
 	"github.com/go-vela/types/pipeline"
-	v1 "k8s.io/api/core/v1"
 )
 
 func TestKubernetes_InspectImage(t *testing.T) {
 	// setup types
-	c := &pipeline.Container{
-		ID:        "__0_init_init",
-		Directory: "/home//",
-		Image:     "#init",
-		Name:      "init",
-		Number:    1,
-	}
-
-	// setup kubernetes
-	r, _ := NewMock("test", &v1.Pod{})
-
-	// run test
-	got, err := r.InspectImage(context.Background(), c)
+	_engine, err := NewMock(_pod)
 	if err != nil {
-		t.Errorf("InspectImage should not have returned err: %w", err)
+		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	if !(got == nil) {
-		t.Errorf("Bytes are %v, want %v", got, nil)
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+	}{
+		{
+			failure:   false,
+			container: _container,
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		_, err = _engine.InspectImage(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("InspectImage should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("InspectImage returned err: %v", err)
+		}
 	}
 }

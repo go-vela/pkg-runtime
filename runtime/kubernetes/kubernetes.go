@@ -7,7 +7,6 @@ package kubernetes
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/clientcmd"
@@ -27,12 +26,16 @@ func New(namespace, path string) (*client, error) {
 	//
 	// when kube config is provided use out of cluster config option else
 	// function will build and return an InClusterConfig
+	//
+	// https://pkg.go.dev/k8s.io/client-go/tools/clientcmd?tab=doc#BuildConfigFromFlags
 	config, err := clientcmd.BuildConfigFromFlags("", path)
 	if err != nil {
 		return nil, err
 	}
 
 	// creates Kubernetes client from configuration
+	//
+	// https://pkg.go.dev/k8s.io/client-go/kubernetes?tab=doc#NewForConfig
 	_kubernetes, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -48,16 +51,14 @@ func New(namespace, path string) (*client, error) {
 	}, nil
 }
 
-// New returns an Engine implementation that
+// NewMock returns an Engine implementation that
 // integrates with a Kubernetes runtime.
 //
 // This function is intended for running tests only.
-func NewMock(namespace string, objects ...runtime.Object) (*client, error) {
+func NewMock(_pod *v1.Pod) (*client, error) {
 	return &client{
-		namespace: namespace,
-		pod: &v1.Pod{
-			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
-		},
-		kubernetes: fake.NewSimpleClientset(objects...),
+		namespace:  "test",
+		pod:        _pod,
+		kubernetes: fake.NewSimpleClientset(_pod),
 	}, nil
 }
