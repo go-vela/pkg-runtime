@@ -7,7 +7,7 @@ package docker
 import (
 	"context"
 
-	"github.com/go-vela/pkg-runtime/runtime/internal/image"
+	"github.com/go-vela/pkg-runtime/internal/image"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"

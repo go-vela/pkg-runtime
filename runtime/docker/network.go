@@ -9,7 +9,9 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
+
 	"github.com/go-vela/types/pipeline"
+
 	"github.com/sirupsen/logrus"
 )
 
