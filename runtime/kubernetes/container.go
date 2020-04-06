@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-vela/pkg-runtime/runtime/internal/image"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -143,13 +144,13 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	}
 
 	// parse image from step
-	image, err := parseImage(ctn.Image)
+	_image, err := image.ParseWithError(ctn.Image)
 	if err != nil {
 		return err
 	}
 
 	// set the pod container image to the parsed step image
-	c.pod.Spec.Containers[ctn.Number-2].Image = image
+	c.pod.Spec.Containers[ctn.Number-2].Image = _image
 
 	// send API call to patch the pod with the new container image
 	//
@@ -157,7 +158,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	_, err = c.kubernetes.CoreV1().Pods(c.namespace).Patch(
 		c.pod.ObjectMeta.Name,
 		types.StrategicMergePatchType,
-		[]byte(fmt.Sprintf(imagePatch, ctn.ID, image)),
+		[]byte(fmt.Sprintf(imagePatch, ctn.ID, _image)),
 		"",
 	)
 	if err != nil {
@@ -187,7 +188,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		// the containers with the proper image.
 		//
 		// https://hub.docker.com/r/kubernetes/pause
-		Image:           "docker.io/kubernetes/pause:latest",
+		Image:           image.Parse("kubernetes/pause:latest"),
 		Env:             []v1.EnvVar{},
 		Stdin:           false,
 		StdinOnce:       false,

@@ -10,12 +10,13 @@ import (
 	"io"
 	"os"
 
-	"github.com/go-vela/types/pipeline"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+
+	"github.com/go-vela/pkg-runtime/runtime/internal/image"
+	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
 )
@@ -139,7 +140,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	logrus.Tracef("setting up for container %s", ctn.ID)
 
 	// parse image from container
-	image, err := parseImage(ctn.Image)
+	_image, err := image.ParseWithError(ctn.Image)
 	if err != nil {
 		return err
 	}
@@ -154,7 +155,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		// send API call to pull the image for the container
 		//
 		// https://godoc.org/github.com/docker/docker/client#Client.ImagePull
-		reader, err := c.docker.ImagePull(ctx, image, opts)
+		reader, err := c.docker.ImagePull(ctx, _image, opts)
 		if err != nil {
 			return err
 		}
@@ -173,7 +174,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	// check if the container image exists on the host
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ImageInspectWithRaw
-	_, _, err = c.docker.ImageInspectWithRaw(ctx, image)
+	_, _, err = c.docker.ImageInspectWithRaw(ctx, _image)
 	if err == nil {
 		return nil
 	}
@@ -191,7 +192,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		// send API call to pull the image for the container
 		//
 		// https://godoc.org/github.com/docker/docker/client#Client.ImagePull
-		reader, err := c.docker.ImagePull(ctx, image, opts)
+		reader, err := c.docker.ImagePull(ctx, _image, opts)
 		if err != nil {
 			return err
 		}
@@ -287,17 +288,11 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 func ctnConfig(ctn *pipeline.Container) *container.Config {
 	logrus.Tracef("Creating container configuration for step %s", ctn.ID)
 
-	// parse image from container
-	image, err := parseImage(ctn.Image)
-	if err != nil {
-		logrus.Errorf("unable to parse image: %v", err)
-	}
-
 	// create container config object
 	//
 	// https://godoc.org/github.com/docker/docker/api/types/container#Config
 	config := &container.Config{
-		Image:        image,
+		Image:        image.Parse(ctn.Image),
 		WorkingDir:   ctn.Directory,
 		AttachStdin:  false,
 		AttachStdout: true,
