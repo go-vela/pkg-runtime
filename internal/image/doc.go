@@ -7,5 +7,5 @@
 //
 // Usage:
 //
-// 	import "github.com/go-vela/pkg-runtime/runtime/internal/image"
+// 	import "github.com/go-vela/pkg-runtime/internal/image"
 package image

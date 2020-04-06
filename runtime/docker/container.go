@@ -15,7 +15,7 @@ import (
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 
-	"github.com/go-vela/pkg-runtime/runtime/internal/image"
+	"github.com/go-vela/pkg-runtime/internal/image"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
