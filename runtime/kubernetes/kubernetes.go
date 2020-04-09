@@ -57,8 +57,9 @@ func New(namespace, path string) (*client, error) {
 // This function is intended for running tests only.
 func NewMock(_pod *v1.Pod) (*client, error) {
 	return &client{
-		namespace:  "test",
-		pod:        _pod,
+		namespace: "test",
+		pod:       _pod,
+		// https://pkg.go.dev/k8s.io/client-go/kubernetes/fake?tab=doc#NewSimpleClientset
 		kubernetes: fake.NewSimpleClientset(_pod),
 	}, nil
 }
