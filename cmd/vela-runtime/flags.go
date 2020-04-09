@@ -17,7 +17,7 @@ func flags() []cli.Flag {
 			EnvVar: "VELA_PIPELINE_CONFIG,PIPELINE_CONFIG",
 			Name:   "pipeline.config",
 			Usage:  "path to pipeline configuration file",
-			Value:  "testdata/steps.yml",
+			Value:  "runtime/testdata/steps.yml",
 		},
 
 		// Compiler Flags
