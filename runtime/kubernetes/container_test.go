@@ -216,10 +216,16 @@ func TestKubernetes_SetupContainer(t *testing.T) {
 	}
 }
 
+// TODO: implement this once they resolve the bug
+//
+// https://github.com/kubernetes/kubernetes/issues/84203
 func TestKubernetes_TailContainer(t *testing.T) {
-	// TODO: investigate this test, Kubernetes mock isn't working with custom request based options
-	// Current test can not be completed due to Kubernetes crashing
-	// on nil request from response
+	// Unfortunately, we can't implement this test using
+	// the native Kubernetes fake. This is because there
+	// is a bug in that code where an "empty" request is
+	// always returned when calling the GetLogs function.
+	//
+	// https://github.com/kubernetes/kubernetes/issues/84203
 }
 
 func TestKubernetes_WaitContainer(t *testing.T) {
