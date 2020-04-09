@@ -12,6 +12,10 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes/fake"
+	testcore "k8s.io/client-go/testing"
 )
 
 func TestKubernetes_InspectContainer(t *testing.T) {
@@ -216,11 +220,115 @@ func TestKubernetes_TailContainer(t *testing.T) {
 	// TODO: investigate this test, Kubernetes mock isn't working with custom request based options
 	// Current test can not be completed due to Kubernetes crashing
 	// on nil request from response
-
 }
 
 func TestKubernetes_WaitContainer(t *testing.T) {
-	// TODO: investigate using the Kubernetes test utility with Watch() clients
-	// Current test can not be completed due to Kubernetes responses hanging on
-	// returning the channel of events <-watch.ResultChan()
+	// setup types
+	_engine, err := NewMock(_pod)
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
+
+	// create a new fake kubernetes client
+	//
+	// https://pkg.go.dev/k8s.io/client-go/kubernetes/fake?tab=doc#NewSimpleClientset
+	_kubernetes := fake.NewSimpleClientset(_pod)
+
+	// create a new fake watcher
+	//
+	// https://pkg.go.dev/k8s.io/apimachinery/pkg/watch?tab=doc#NewFake
+	_watch := watch.NewFake()
+
+	// create a new watch reactor with the fake watcher
+	//
+	// https://pkg.go.dev/k8s.io/client-go/testing?tab=doc#DefaultWatchReactor
+	reactor := testcore.DefaultWatchReactor(_watch, nil)
+
+	// add watch reactor to beginning of the client chain
+	//
+	// https://pkg.go.dev/k8s.io/client-go/testing?tab=doc#Fake.PrependWatchReactor
+	_kubernetes.PrependWatchReactor("pods", reactor)
+
+	// overwrite the mock kubernetes client
+	_engine.kubernetes = _kubernetes
+
+	// setup tests
+	tests := []struct {
+		failure   bool
+		container *pipeline.Container
+		object    runtime.Object
+	}{
+		{
+			failure:   false,
+			container: _container,
+			object:    _pod,
+		},
+		{
+			failure:   false,
+			container: _container,
+			object: &v1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "github-octocat-1",
+					Namespace: "test",
+					Labels: map[string]string{
+						"pipeline": "github-octocat-1",
+					},
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Pod",
+				},
+				Status: v1.PodStatus{
+					Phase: v1.PodRunning,
+					ContainerStatuses: []v1.ContainerStatus{
+						{
+							Name: "step-github-octocat-1-echo",
+							State: v1.ContainerState{
+								Terminated: &v1.ContainerStateTerminated{
+									Reason:   "Completed",
+									ExitCode: 0,
+								},
+							},
+						},
+						{
+							Name: "step-github-octocat-1-clone",
+							State: v1.ContainerState{
+								Terminated: &v1.ContainerStateTerminated{
+									Reason:   "Completed",
+									ExitCode: 0,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			failure:   true,
+			container: _container,
+			object:    new(v1.PodTemplate),
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		go func() {
+			// simulate adding a pod to the watcher
+			_watch.Add(test.object)
+		}()
+
+		err := _engine.WaitContainer(context.Background(), test.container)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("WaitContainer should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("WaitContainer returned err: %v", err)
+		}
+	}
 }

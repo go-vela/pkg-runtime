@@ -66,6 +66,9 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "github-octocat-1",
 			Namespace: "test",
+			Labels: map[string]string{
+				"pipeline": "github-octocat-1",
+			},
 		},
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
