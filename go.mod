@@ -6,9 +6,9 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
 	github.com/gin-gonic/gin v1.5.0
-	github.com/go-vela/compiler v0.3.1-0.20200302143952-6a5a26ba1fbc
-	github.com/go-vela/mock v0.3.1-0.20200330162331-99c39325ff38
-	github.com/go-vela/types v0.3.1-0.20200406195903-8be24be6c8f1
+	github.com/go-vela/compiler v0.4.0-rc1
+	github.com/go-vela/mock v0.4.0-rc1
+	github.com/go-vela/types v0.4.0-rc1
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/sirupsen/logrus v1.5.0
@@ -20,5 +20,3 @@ require (
 	k8s.io/client-go v0.17.3
 	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
 )
-
-replace github.com/go-vela/compiler => github.com/GregoryDosh/compiler v0.3.1
