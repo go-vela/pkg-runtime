@@ -22,7 +22,7 @@ import (
 func New(s *Setup) (Engine, error) {
 	// validate the setup being provided
 	//
-	// // https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime?tab=doc#Setup.Validate
+	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime?tab=doc#Setup.Validate
 	err := s.Validate()
 	if err != nil {
 		return nil, err
