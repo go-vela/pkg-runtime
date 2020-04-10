@@ -21,6 +21,8 @@ import (
 // * kubernetes
 func New(s *Setup) (Engine, error) {
 	// validate the setup being provided
+	//
+	// // https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime?tab=doc#Setup.Validate
 	err := s.Validate()
 	if err != nil {
 		return nil, err
@@ -31,9 +33,13 @@ func New(s *Setup) (Engine, error) {
 	switch s.Driver {
 	case constants.DriverDocker:
 		// handle the Docker runtime driver being provided
+		//
+		// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime?tab=doc#Setup.Docker
 		return s.Docker()
 	case constants.DriverKubernetes:
 		// handle the Kubernetes runtime driver being provided
+		//
+		// // https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime?tab=doc#Setup.Kubernetes
 		return s.Kubernetes()
 	default:
 		// handle an invalid runtime driver being provided
