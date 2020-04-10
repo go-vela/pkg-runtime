@@ -31,6 +31,8 @@ func (s *Setup) Docker() (Engine, error) {
 	logrus.Trace("creating docker runtime client from setup")
 
 	// create new Docker runtime engine
+	//
+	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/docker?tab=doc#New
 	return docker.New()
 }
 
@@ -40,6 +42,8 @@ func (s *Setup) Kubernetes() (Engine, error) {
 	logrus.Trace("creating kubernetes runtime client from setup")
 
 	// create new Kubernetes runtime engine
+	//
+	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/kubernetes?tab=doc#New
 	return kubernetes.New(s.Namespace, s.Config)
 }
 
