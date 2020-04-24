@@ -6,9 +6,9 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
 	github.com/gin-gonic/gin v1.5.0
-	github.com/go-vela/compiler v0.4.0-rc1
-	github.com/go-vela/mock v0.4.0-rc1
-	github.com/go-vela/types v0.4.0-rc1
+	github.com/go-vela/compiler v0.4.0-rc2
+	github.com/go-vela/mock v0.4.0-rc2
+	github.com/go-vela/types v0.4.0-rc2
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/sirupsen/logrus v1.5.0
