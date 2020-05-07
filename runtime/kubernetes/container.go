@@ -138,6 +138,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
 		_, err := c.Runtime.CoreV1().Pods(c.namespace).Create(c.pod)
 		if err != nil {
+			logrus.Error(err)
 			return err
 		}
 	}

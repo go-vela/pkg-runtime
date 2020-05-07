@@ -14,7 +14,7 @@ steps:
   # sleep testing waiting step
   - name: sleep
     commands: |
-      secs=30
+      secs=1
       while [ $secs -gt 0 ]; do
          echo "$secs"
          sleep 1
