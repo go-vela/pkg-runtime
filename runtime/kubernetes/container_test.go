@@ -128,13 +128,13 @@ func TestKubernetes_RunContainer(t *testing.T) {
 						{
 							Name:            "step-github-octocat-1-clone",
 							Image:           "target/vela-git:v0.3.0",
-							WorkingDir:      "/home/github/octocat",
+							WorkingDir:      "/vela/src/github.com/octocat/helloworld",
 							ImagePullPolicy: v1.PullAlways,
 						},
 						{
 							Name:            "step-github-octocat-1-echo",
 							Image:           "alpine:latest",
-							WorkingDir:      "/home/github/octocat",
+							WorkingDir:      "/vela/src/github.com/octocat/helloworld",
 							ImagePullPolicy: v1.PullAlways,
 						},
 					},
@@ -187,7 +187,7 @@ func TestKubernetes_SetupContainer(t *testing.T) {
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_echo",
 				Commands:    []string{"echo", "hello"},
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Entrypoint:  []string{"/bin/sh", "-c"},
 				Image:       "alpine:latest",

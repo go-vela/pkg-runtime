@@ -58,7 +58,7 @@ func TestDocker_New(t *testing.T) {
 var (
 	_container = &pipeline.Container{
 		ID:          "step_github_octocat_1_clone",
-		Directory:   "/home/github/octocat",
+		Directory:   "/vela/src/github.com/octocat/helloworld",
 		Environment: map[string]string{"FOO": "bar"},
 		Image:       "target/vela-git:v0.3.0",
 		Name:        "clone",
@@ -72,7 +72,7 @@ var (
 		Services: pipeline.ContainerSlice{
 			{
 				ID:          "service_github_octocat_1_postgres",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "postgres:12-alpine",
 				Name:        "postgres",
@@ -83,7 +83,7 @@ var (
 		Steps: pipeline.ContainerSlice{
 			{
 				ID:          "step_github_octocat_1_init",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "#init",
 				Name:        "init",
@@ -92,7 +92,7 @@ var (
 			},
 			{
 				ID:          "step_github_octocat_1_clone",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:v0.3.0",
 				Name:        "clone",
@@ -102,7 +102,7 @@ var (
 			{
 				ID:          "step_github_octocat_1_echo",
 				Commands:    []string{"echo hello"},
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "alpine:latest",
 				Name:        "echo",

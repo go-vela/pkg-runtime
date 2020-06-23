@@ -35,7 +35,7 @@ func TestDocker_InspectImage(t *testing.T) {
 			failure: true,
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_clone",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:notfound",
 				Name:        "clone",
