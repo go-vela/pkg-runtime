@@ -87,7 +87,7 @@ func hostConfig(id string) *container.HostConfig {
 			{
 				Type:   mount.TypeVolume,
 				Source: id,
-				Target: "/home",
+				Target: "/vela",
 			},
 		},
 	}

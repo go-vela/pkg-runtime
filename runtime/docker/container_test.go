@@ -75,7 +75,7 @@ func TestDocker_RemoveContainer(t *testing.T) {
 			failure: true,
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_ignorenotfound",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:v0.3.0",
 				Name:        "ignorenotfound",
@@ -127,7 +127,7 @@ func TestDocker_RunContainer(t *testing.T) {
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_echo",
 				Commands:    []string{"echo", "hello"},
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Entrypoint:  []string{"/bin/sh", "-c"},
 				Image:       "alpine:latest",
@@ -146,7 +146,7 @@ func TestDocker_RunContainer(t *testing.T) {
 			pipeline: _pipeline,
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_ignorenotfound",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:v0.3.0",
 				Name:        "ignorenotfound",
@@ -194,7 +194,7 @@ func TestDocker_SetupContainer(t *testing.T) {
 			failure: false,
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_clone",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:v0.3.0",
 				Name:        "clone",
@@ -206,7 +206,7 @@ func TestDocker_SetupContainer(t *testing.T) {
 			failure: false,
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_clone",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:ignorenotfound",
 				Name:        "clone",
@@ -222,7 +222,7 @@ func TestDocker_SetupContainer(t *testing.T) {
 			failure: true,
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_clone",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:notfound",
 				Name:        "clone",
@@ -234,7 +234,7 @@ func TestDocker_SetupContainer(t *testing.T) {
 			failure: true,
 			container: &pipeline.Container{
 				ID:          "step_github_octocat_1_clone",
-				Directory:   "/home/github/octocat",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:notfound",
 				Name:        "clone",
