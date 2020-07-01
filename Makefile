@@ -2,20 +2,26 @@
 #
 # Use of this source code is governed by the LICENSE file in this repository.
 
+.PHONY: build
 build: binary-build
 
+.PHONY: run
 run: build kubernetes-run
 
+.PHONY: docker-test
 docker-test: build docker-run
 
+.PHONY: kubernetes-test
 kubernetes-test: build kubernetes-run
 
+.PHONY: test
 test: build docker-run kubernetes-run
 
 #################################
 ######      Go clean       ######
 #################################
 
+.PHONY: clean
 clean:
 
 	@go mod tidy
@@ -27,6 +33,7 @@ clean:
 ######    Build Binary     ######
 #################################
 
+.PHONY: binary-build
 binary-build:
 
 	GOOS=darwin CGO_ENABLED=0 \
@@ -38,6 +45,7 @@ binary-build:
 #####          Docker Run          #####
 ########################################
 
+.PHONY: docker-run
 docker-run:
 
 	release/vela-runtime \
@@ -48,6 +56,7 @@ docker-run:
 #####          Kubernetes Run          #####
 ############################################
 
+.PHONY: kubernetes-run
 kubernetes-run:
 
 	release/vela-runtime \
