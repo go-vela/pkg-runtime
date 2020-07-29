@@ -58,7 +58,7 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 	// convert volume type Volume to bytes with pretty print
 	//
 	// https://godoc.org/github.com/docker/docker/api/types#Volume
-	volume, err := json.MarshalIndent(v, "", "    ")
+	volume, err := json.MarshalIndent(v, "", " ")
 	if err != nil {
 		return nil, err
 	}

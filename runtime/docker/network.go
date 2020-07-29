@@ -58,7 +58,7 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 	// convert network type NetworkResource to bytes with pretty print
 	//
 	// https://godoc.org/github.com/docker/docker/api/types#NetworkResource
-	network, err := json.MarshalIndent(n, "", "    ")
+	network, err := json.MarshalIndent(n, "", " ")
 	if err != nil {
 		return nil, err
 	}
