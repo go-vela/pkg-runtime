@@ -5,7 +5,9 @@
 package docker
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
@@ -54,7 +56,18 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 		return nil, err
 	}
 
-	return []byte(n.ID + "\n"), nil
+	// allocate bytes to store network inspect information
+	network := new(bytes.Buffer)
+
+	// convert network type NetworkResource to bytes
+	//
+	// https://godoc.org/github.com/docker/docker/api/types#NetworkResource
+	err = json.NewEncoder(network).Encode(n)
+	if err != nil {
+		return nil, err
+	}
+
+	return network.Bytes(), nil
 }
 
 // RemoveNetwork deletes the pipeline network.
