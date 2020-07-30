@@ -64,9 +64,7 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 	}
 
 	// add new line to end of bytes
-	volume = append(volume, "\n"...)
-
-	return volume, nil
+	return append(volume, "\n"...), nil
 }
 
 // RemoveVolume deletes the pipeline volume.

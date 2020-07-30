@@ -64,9 +64,7 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 	}
 
 	// add new line to end of bytes
-	network = append(network, "\n"...)
-
-	return network, nil
+	return append(network, "\n"...), nil
 }
 
 // RemoveNetwork deletes the pipeline network.
