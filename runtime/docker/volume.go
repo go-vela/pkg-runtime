@@ -6,6 +6,7 @@ package docker
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
@@ -54,7 +55,16 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 		return nil, err
 	}
 
-	return []byte(v.Name + "\n"), nil
+	// convert volume type Volume to bytes with pretty print
+	//
+	// https://godoc.org/github.com/docker/docker/api/types#Volume
+	volume, err := json.MarshalIndent(v, "", " ")
+	if err != nil {
+		return nil, err
+	}
+
+	// add new line to end of bytes
+	return append(volume, "\n"...), nil
 }
 
 // RemoveVolume deletes the pipeline volume.

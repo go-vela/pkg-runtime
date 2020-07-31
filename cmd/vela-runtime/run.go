@@ -20,7 +20,7 @@ import (
 // run executes the package based off the configuration provided.
 func run(c *cli.Context) error {
 	// set the log level for the plugin
-	switch c.String("log.level") {
+	switch c.String("runtime.log.level") {
 	case "t", "trace", "Trace", "TRACE":
 		logrus.SetLevel(logrus.TraceLevel)
 	case "d", "debug", "Debug", "DEBUG":
