@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/volume"
 
+	vol "github.com/go-vela/pkg-runtime/internal/volume"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -22,7 +23,7 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("creating volume for pipeline %s", b.ID)
 
 	// create host configuration
-	c.hostConf = hostConfig(b.ID)
+	c.hostConf = hostConfig(b.ID, c.volumes)
 
 	// create options for creating volume
 	//
@@ -84,7 +85,33 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 
 // hostConfig is a helper function to generate
 // the host config with volume specification for a container.
-func hostConfig(id string) *container.HostConfig {
+func hostConfig(id string, volumes []string) *container.HostConfig {
+	// create default mount for pipeline volume
+	mounts := []mount.Mount{
+		{
+			Type:   mount.TypeVolume,
+			Source: id,
+			Target: "/vela",
+		},
+	}
+
+	// check if other volumes were provided
+	if len(volumes) > 0 {
+		// iterate through all volumes provided
+		for _, v := range volumes {
+			// parse the volume provided
+			_volume := vol.Parse(v)
+
+			// add the volume to the set of mounts
+			mounts = append(mounts, mount.Mount{
+				Type: mount.TypeBind,
+				Source: _volume.Source,
+				Target: _volume.Destination,
+				ReadOnly: _volume.AccessMode == "ro",
+			})
+		}
+	}
+
 	// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
 	return &container.HostConfig{
 		// https://godoc.org/github.com/docker/docker/api/types/container#LogConfig
@@ -93,12 +120,6 @@ func hostConfig(id string) *container.HostConfig {
 		},
 		Privileged: false,
 		// https://godoc.org/github.com/docker/docker/api/types/mount#Mount
-		Mounts: []mount.Mount{
-			{
-				Type:   mount.TypeVolume,
-				Source: id,
-				Target: "/vela",
-			},
-		},
+		Mounts: mounts,
 	}
 }
