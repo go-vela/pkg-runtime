@@ -32,10 +32,6 @@ func Parse(_volume string) *Volume {
 	return v
 }
 
-// Parse digests the provided volume into a fully
-// qualified volume reference. If an error
-// occurs, it will return the provided volume.
-
 // ParseWithError digests the provided volume into a
 // fully qualified volume reference. If an error
 // occurs, it will return a nil volume and the
