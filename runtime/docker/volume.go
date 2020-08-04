@@ -86,6 +86,8 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 // hostConfig is a helper function to generate
 // the host config with volume specification for a container.
 func hostConfig(id string, volumes []string) *container.HostConfig {
+	logrus.Tracef("creating mount for default volume %s", id)
+
 	// create default mount for pipeline volume
 	mounts := []mount.Mount{
 		{
@@ -99,14 +101,19 @@ func hostConfig(id string, volumes []string) *container.HostConfig {
 	if len(volumes) > 0 {
 		// iterate through all volumes provided
 		for _, v := range volumes {
+			logrus.Tracef("creating mount for volume %s", v)
+
 			// parse the volume provided
-			_volume := vol.Parse(v)
+			_volume, err := vol.ParseWithError(v)
+			if err != nil {
+				logrus.Error(err)
+			}
 
 			// add the volume to the set of mounts
 			mounts = append(mounts, mount.Mount{
-				Type: mount.TypeBind,
-				Source: _volume.Source,
-				Target: _volume.Destination,
+				Type:     mount.TypeBind,
+				Source:   _volume.Source,
+				Target:   _volume.Destination,
 				ReadOnly: _volume.AccessMode == "ro",
 			})
 		}
