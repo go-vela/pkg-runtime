@@ -43,4 +43,9 @@ var Flags = []cli.Flag{
 		Name:    "runtime.namespace",
 		Usage:   "name of namespace for runtime configuration (kubernetes runtime only)",
 	},
+	&cli.StringFlag{
+		EnvVars: []string{"VELA_RUNTIME_VOLUMES", "RUNTIME_VOLUMES"},
+		Name:    "runtime.volumes",
+		Usage:   "set of volumes to mount into the runtime",
+	},
 }

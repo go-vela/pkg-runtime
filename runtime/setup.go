@@ -23,6 +23,7 @@ type Setup struct {
 	Driver    string
 	Config    string
 	Namespace string
+	Volumes   []string
 }
 
 // Docker creates and returns a Vela engine capable of
@@ -33,7 +34,7 @@ func (s *Setup) Docker() (Engine, error) {
 	// create new Docker runtime engine
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/docker?tab=doc#New
-	return docker.New()
+	return docker.New(s.Volumes)
 }
 
 // Kubernetes creates and returns a Vela engine capable of
@@ -44,7 +45,7 @@ func (s *Setup) Kubernetes() (Engine, error) {
 	// create new Kubernetes runtime engine
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/kubernetes?tab=doc#New
-	return kubernetes.New(s.Namespace, s.Config)
+	return kubernetes.New(s.Namespace, s.Config, s.Volumes)
 }
 
 // Validate verifies the necessary fields for the
