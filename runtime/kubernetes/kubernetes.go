@@ -17,11 +17,14 @@ type client struct {
 
 	namespace string
 	pod       *v1.Pod
+
+	// set of host volumes to mount into every container
+	volumes []string
 }
 
 // New returns an Engine implementation that
 // integrates with a Kubernetes runtime.
-func New(namespace, path string) (*client, error) {
+func New(namespace, path string, _volumes []string) (*client, error) {
 	// use the current context in kubeconfig
 	//
 	// when kube config is provided use out of cluster config option else
@@ -48,6 +51,7 @@ func New(namespace, path string) (*client, error) {
 			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		},
 		kubernetes: _kubernetes,
+		volumes:    _volumes,
 	}, nil
 }
 

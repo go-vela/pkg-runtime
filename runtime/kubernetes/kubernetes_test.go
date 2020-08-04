@@ -34,7 +34,7 @@ func TestKubernetes_New(t *testing.T) {
 
 	// run tests
 	for _, test := range tests {
-		_, err := New(test.namespace, test.path)
+		_, err := New(test.namespace, test.path, nil)
 
 		if test.failure {
 			if err == nil {

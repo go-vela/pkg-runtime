@@ -7,9 +7,11 @@ package kubernetes
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	v1 "k8s.io/api/core/v1"
 
+	vol "github.com/go-vela/pkg-runtime/internal/volume"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -45,6 +47,25 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
 	c.pod.Spec.Volumes = append(c.pod.Spec.Volumes, volume)
+
+	// check if other volumes were provided
+	if len(c.volumes) > 0 {
+		// iterate through all volumes provided
+		for k, v := range c.volumes {
+			// parse the volume provided
+			_volume := vol.Parse(v)
+
+			// add the volume to the set of pod volumes
+			c.pod.Spec.Volumes = append(c.pod.Spec.Volumes, v1.Volume{
+				Name: fmt.Sprintf("%s_%d", b.ID, k),
+				VolumeSource: v1.VolumeSource{
+					HostPath: &v1.HostPathVolumeSource{
+						Path: _volume.Source,
+					},
+				},
+			})
+		}
+	}
 
 	return nil
 }
