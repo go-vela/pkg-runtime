@@ -25,11 +25,14 @@ type client struct {
 	hostConf *container.HostConfig
 	// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
 	netConf *network.NetworkingConfig
+
+	// set of host volumes to mount into every container
+	volumes []string
 }
 
 // New returns an Engine implementation that
 // integrates with a Docker runtime.
-func New() (*client, error) {
+func New(_volumes []string) (*client, error) {
 	// create Docker client from environment
 	//
 	// https://godoc.org/github.com/docker/docker/client#NewClientWithOpts
@@ -51,6 +54,7 @@ func New() (*client, error) {
 		ctnConf:  new(container.Config),
 		hostConf: new(container.HostConfig),
 		netConf:  new(network.NetworkingConfig),
+		volumes:  _volumes,
 	}, nil
 }
 
