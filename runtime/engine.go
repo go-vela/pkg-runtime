@@ -24,9 +24,9 @@ type Engine interface {
 	// (kill, remove) the pipeline container.
 	RemoveContainer(context.Context, *pipeline.Container) error
 	// RunContainer defines a function that creates
-	// and start the pipeline container.
+	// and starts the pipeline container.
 	RunContainer(context.Context, *pipeline.Container, *pipeline.Build) error
-	// SetupContainer defines a function that pulls
+	// SetupContainer defines a function that prepares
 	// the image for the pipeline container.
 	SetupContainer(context.Context, *pipeline.Container) error
 	// TailContainer defines a function that captures
@@ -38,6 +38,9 @@ type Engine interface {
 
 	// Image Engine Interface Functions
 
+	// CreateImage defines a function that
+	// creates the pipeline container image.
+	CreateImage(context.Context, *pipeline.Container) error
 	// InspectImage defines a function that
 	// inspects the pipeline container image.
 	InspectImage(context.Context, *pipeline.Container) ([]byte, error)
