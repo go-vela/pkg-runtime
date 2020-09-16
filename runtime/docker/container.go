@@ -8,7 +8,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
+	"strings"
+
+	"github.com/go-vela/types/constants"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -97,9 +99,18 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 	return nil
 }
 
-// RunContainer creates and start the pipeline container.
+// RunContainer creates and starts the pipeline container.
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
+
+	// check if the container pull policy is on_start
+	if strings.EqualFold(ctn.Pull, constants.PullOnStart) {
+		// send API call to create the image
+		err := c.CreateImage(ctx, ctn)
+		if err != nil {
+			return err
+		}
+	}
 
 	// create container configuration
 	c.ctnConf = ctnConfig(ctn)
@@ -135,40 +146,34 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	return nil
 }
 
-// SetupContainer pulls the image for the pipeline container.
+// SetupContainer prepares the image for the pipeline container.
 func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
 	logrus.Tracef("setting up for container %s", ctn.ID)
 
+	// handle the container pull policy
+	switch ctn.Pull {
+	case constants.PullAlways:
+		// send API call to create the image
+		return c.CreateImage(ctx, ctn)
+	case constants.PullNotPresent:
+		// handled further down in this function
+		break
+	case constants.PullNever:
+		fallthrough
+	case constants.PullOnStart:
+		fallthrough
+	default:
+		logrus.Tracef("skipping setup for container %s due to pull policy %s", ctn.ID, ctn.Pull)
+
+		return nil
+	}
+
 	// parse image from container
+	//
+	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/internal/image#ParseWithError
 	_image, err := image.ParseWithError(ctn.Image)
 	if err != nil {
 		return err
-	}
-
-	// check if the container should be updated
-	if ctn.Pull {
-		// create options for pulling image
-		//
-		// https://godoc.org/github.com/docker/docker/api/types#ImagePullOptions
-		opts := types.ImagePullOptions{}
-
-		// send API call to pull the image for the container
-		//
-		// https://godoc.org/github.com/docker/docker/client#Client.ImagePull
-		reader, err := c.docker.ImagePull(ctx, _image, opts)
-		if err != nil {
-			return err
-		}
-
-		defer reader.Close()
-
-		// copy output from image pull to standard output
-		_, err = io.Copy(os.Stdout, reader)
-		if err != nil {
-			return err
-		}
-
-		return nil
 	}
 
 	// check if the container image exists on the host
@@ -184,28 +189,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	//
 	// https://godoc.org/github.com/docker/docker/client#IsErrNotFound
 	if docker.IsErrNotFound(err) {
-		// create options for pulling image
-		//
-		// // https://godoc.org/github.com/docker/docker/api/types#ImagePullOptions
-		opts := types.ImagePullOptions{}
-
-		// send API call to pull the image for the container
-		//
-		// https://godoc.org/github.com/docker/docker/client#Client.ImagePull
-		reader, err := c.docker.ImagePull(ctx, _image, opts)
-		if err != nil {
-			return err
-		}
-
-		defer reader.Close()
-
-		// copy output from image pull to standard output
-		_, err = io.Copy(os.Stdout, reader)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		// send API call to create the image
+		return c.CreateImage(ctx, ctn)
 	}
 
 	return err

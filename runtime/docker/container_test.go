@@ -80,7 +80,7 @@ func TestDocker_RemoveContainer(t *testing.T) {
 				Image:       "target/vela-git:v0.3.0",
 				Name:        "ignorenotfound",
 				Number:      2,
-				Pull:        true,
+				Pull:        "always",
 			},
 		},
 	}
@@ -133,7 +133,7 @@ func TestDocker_RunContainer(t *testing.T) {
 				Image:       "alpine:latest",
 				Name:        "echo",
 				Number:      2,
-				Pull:        true,
+				Pull:        "always",
 			},
 		},
 		{
@@ -151,7 +151,7 @@ func TestDocker_RunContainer(t *testing.T) {
 				Image:       "target/vela-git:v0.3.0",
 				Name:        "ignorenotfound",
 				Number:      2,
-				Pull:        true,
+				Pull:        "always",
 			},
 		},
 	}
@@ -199,7 +199,7 @@ func TestDocker_SetupContainer(t *testing.T) {
 				Image:       "target/vela-git:v0.3.0",
 				Name:        "clone",
 				Number:      2,
-				Pull:        false,
+				Pull:        "not_present",
 			},
 		},
 		{
@@ -211,7 +211,7 @@ func TestDocker_SetupContainer(t *testing.T) {
 				Image:       "target/vela-git:ignorenotfound",
 				Name:        "clone",
 				Number:      2,
-				Pull:        false,
+				Pull:        "not_present",
 			},
 		},
 		{
@@ -227,7 +227,7 @@ func TestDocker_SetupContainer(t *testing.T) {
 				Image:       "target/vela-git:notfound",
 				Name:        "clone",
 				Number:      2,
-				Pull:        true,
+				Pull:        "always",
 			},
 		},
 		{
@@ -239,7 +239,7 @@ func TestDocker_SetupContainer(t *testing.T) {
 				Image:       "target/vela-git:notfound",
 				Name:        "clone",
 				Number:      2,
-				Pull:        false,
+				Pull:        "not_present",
 			},
 		},
 	}
