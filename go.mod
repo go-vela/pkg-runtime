@@ -9,7 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-vela/compiler v0.5.1
 	github.com/go-vela/mock v0.5.2
-	github.com/go-vela/types v0.5.2
+	github.com/go-vela/types v0.5.3-0.20200915182859-26f35b0bc7f1
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/joho/godotenv v1.3.0
