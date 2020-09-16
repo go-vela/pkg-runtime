@@ -25,6 +25,13 @@ const imagePatch = `
 }
 `
 
+// CreateImage creates the pipeline container image.
+func (c *client) CreateImage(ctx context.Context, ctn *pipeline.Container) error {
+	logrus.Tracef("creating image for container %s", ctn.ID)
+
+	return nil
+}
+
 // InspectImage inspects the pipeline container image.
 func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]byte, error) {
 	logrus.Tracef("inspecting image for container %s", ctn.ID)

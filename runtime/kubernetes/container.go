@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-vela/pkg-runtime/internal/image"
 	vol "github.com/go-vela/pkg-runtime/internal/volume"
+	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -167,6 +168,28 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 
 	// set the pod container image to the parsed step image
 	c.pod.Spec.Containers[ctn.Number-2].Image = _image
+
+	// handle the container pull policy
+	switch ctn.Pull {
+	case constants.PullAlways:
+		// set the pod container pull policy to always
+		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
+	case constants.PullNever:
+		// set the pod container pull policy to never
+		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullNever
+	case constants.PullOnStart:
+		// set the pod container pull policy to always
+		//
+		// if the pipeline container image should be pulled on start, than
+		// we force Kubernetes to pull the image on start with the always
+		// pull policy for the pod container
+		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
+	case constants.PullNotPresent:
+		fallthrough
+	default:
+		// default the pod container pull policy to if not present
+		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullIfNotPresent
+	}
 
 	// send API call to patch the pod with the new container image
 	//

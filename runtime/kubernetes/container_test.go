@@ -193,7 +193,7 @@ func TestKubernetes_SetupContainer(t *testing.T) {
 				Image:       "alpine:latest",
 				Name:        "echo",
 				Number:      2,
-				Pull:        true,
+				Pull:        "always",
 			},
 		},
 	}
