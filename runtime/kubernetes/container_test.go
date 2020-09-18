@@ -127,7 +127,7 @@ func TestKubernetes_RunContainer(t *testing.T) {
 					Containers: []v1.Container{
 						{
 							Name:            "step-github-octocat-1-clone",
-							Image:           "target/vela-git:v0.3.0",
+							Image:           "target/vela-git:v0.4.0",
 							WorkingDir:      "/vela/src/github.com/octocat/helloworld",
 							ImagePullPolicy: v1.PullAlways,
 						},
