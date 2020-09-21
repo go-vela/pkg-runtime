@@ -40,7 +40,7 @@ func TestDocker_InspectImage(t *testing.T) {
 				Image:       "target/vela-git:notfound",
 				Name:        "clone",
 				Number:      2,
-				Pull:        true,
+				Pull:        "always",
 			},
 		},
 	}

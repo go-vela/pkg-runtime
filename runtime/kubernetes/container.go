@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-vela/pkg-runtime/internal/image"
 	vol "github.com/go-vela/pkg-runtime/internal/volume"
+	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -100,7 +101,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 	return nil
 }
 
-// RunContainer creates and start the pipeline container.
+// RunContainer creates and starts the pipeline container.
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
 
@@ -168,6 +169,28 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// set the pod container image to the parsed step image
 	c.pod.Spec.Containers[ctn.Number-2].Image = _image
 
+	// handle the container pull policy
+	switch ctn.Pull {
+	case constants.PullAlways:
+		// set the pod container pull policy to always
+		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
+	case constants.PullNever:
+		// set the pod container pull policy to never
+		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullNever
+	case constants.PullOnStart:
+		// set the pod container pull policy to always
+		//
+		// if the pipeline container image should be pulled on start, than
+		// we force Kubernetes to pull the image on start with the always
+		// pull policy for the pod container
+		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
+	case constants.PullNotPresent:
+		fallthrough
+	default:
+		// default the pod container pull policy to if not present
+		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullIfNotPresent
+	}
+
 	// send API call to patch the pod with the new container image
 	//
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
@@ -184,7 +207,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	return nil
 }
 
-// SetupContainer pulls the image for the pipeline container.
+// SetupContainer prepares the image for the pipeline container.
 func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) error {
 	logrus.Tracef("setting up for container %s", ctn.ID)
 
