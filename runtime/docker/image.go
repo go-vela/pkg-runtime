@@ -6,11 +6,14 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/go-vela/pkg-runtime/internal/image"
+	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -62,6 +65,11 @@ func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]b
 	_image, err := image.ParseWithError(ctn.Image)
 	if err != nil {
 		return nil, err
+	}
+
+	// check if the container pull policy is on start
+	if strings.EqualFold(ctn.Pull, constants.PullOnStart) {
+		return []byte(fmt.Sprintf("skipped for container %s due to pull policy %s\n", ctn.ID, ctn.Pull)), nil
 	}
 
 	// send API call to inspect the image
