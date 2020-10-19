@@ -20,10 +20,11 @@ import (
 // creating a Vela engine capable of integrating
 // with a configured runtime environment.
 type Setup struct {
-	Driver    string
-	Config    string
-	Namespace string
-	Volumes   []string
+	Driver           string
+	Config           string
+	Namespace        string
+	Volumes          []string
+	PrivilegedImages []string
 }
 
 // Docker creates and returns a Vela engine capable of
