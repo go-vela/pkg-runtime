@@ -28,7 +28,6 @@ type client struct {
 
 	// set of host volumes to mount into every container
 	volumes []string
-
 	// set of images that are allowed to run in privileged mode
 	privilegedImages []string
 }
