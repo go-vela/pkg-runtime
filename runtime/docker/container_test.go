@@ -8,6 +8,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/docker/docker/api/types/container"
 	"github.com/go-vela/types/pipeline"
 )
 
@@ -137,6 +138,21 @@ func TestDocker_RunContainer(t *testing.T) {
 			},
 		},
 		{
+			failure:  false,
+			pipeline: _pipeline,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_echo",
+				Commands:    []string{"echo", "hello"},
+				Directory:   "/vela/src/github.com/octocat/helloworld",
+				Environment: map[string]string{"FOO": "bar"},
+				Entrypoint:  []string{"/bin/sh", "-c"},
+				Image:       "target/vela-docker:latest",
+				Name:        "echo",
+				Number:      2,
+				Pull:        "always",
+			},
+		},
+		{
 			failure:   true,
 			pipeline:  _pipeline,
 			container: new(pipeline.Container),
@@ -158,6 +174,8 @@ func TestDocker_RunContainer(t *testing.T) {
 
 	// run tests
 	for _, test := range tests {
+		_engine.hostConf = new(container.HostConfig)
+
 		err = _engine.RunContainer(context.Background(), test.container, test.pipeline)
 
 		if test.failure {

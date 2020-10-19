@@ -35,7 +35,7 @@ func (s *Setup) Docker() (Engine, error) {
 	// create new Docker runtime engine
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/docker?tab=doc#New
-	return docker.New(s.Volumes)
+	return docker.New(s.Volumes, s.PrivilegedImages)
 }
 
 // Kubernetes creates and returns a Vela engine capable of

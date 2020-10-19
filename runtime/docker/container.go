@@ -100,6 +100,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 }
 
 // RunContainer creates and starts the pipeline container.
+// nolint // ignore the function length
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
 
@@ -115,6 +116,13 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// create container configuration
 	c.ctnConf = ctnConfig(ctn)
 	c.netConf = netConfig(b.ID, ctn.Name)
+
+	// check if the image is allowed to run privileged
+	for _, image := range c.privilegedImages {
+		if strings.HasPrefix(ctn.Image, image) {
+			c.hostConf.Privileged = true
+		}
+	}
 
 	// send API call to create the container
 	//

@@ -38,7 +38,7 @@ func TestDocker_New(t *testing.T) {
 		// patch environment for tests
 		env.PatchAll(t, test.envs)
 
-		_, err := New(nil)
+		_, err := New(nil, nil)
 
 		if test.failure {
 			if err == nil {
