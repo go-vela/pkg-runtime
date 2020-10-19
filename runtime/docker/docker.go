@@ -12,7 +12,7 @@ import (
 	mock "github.com/go-vela/mock/docker"
 )
 
-// expected version for the Docker API
+// expected version for the Docker API.
 const version = "1.38"
 
 type client struct {
@@ -34,6 +34,7 @@ type client struct {
 
 // New returns an Engine implementation that
 // integrates with a Docker runtime.
+// nolint // ignore client error claiming it's annoying usage
 func New(_volumes, _privilegedImages []string) (*client, error) {
 	// create Docker client from environment
 	//
@@ -65,6 +66,7 @@ func New(_volumes, _privilegedImages []string) (*client, error) {
 // integrates with a mock Docker runtime.
 //
 // This function is intended for running tests only.
+// nolint // ignore client error claiming it's annoying usage
 func NewMock() (*client, error) {
 	// create Docker client from the mock client
 	_docker, _ := mock.New()
