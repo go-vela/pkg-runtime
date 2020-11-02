@@ -157,6 +157,18 @@ func TestImage_IsPrivledgedImage(t *testing.T) {
 			pattern: "docker.company.com/foo/bar:v0.1.0",
 			want:    false,
 		},
+		{
+			name:    "test privileged with bad image",
+			image:   "!@#$%^&*()",
+			pattern: "docker.company.com/foo/bar",
+			want:    false,
+		},
+		{
+			name:    "test privileged with bad pattern",
+			image:   "docker.company.com/foo/bar",
+			pattern: "!@#$%^&*()",
+			want:    false,
+		},
 	}
 
 	for _, test := range tests {
