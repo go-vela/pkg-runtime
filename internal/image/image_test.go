@@ -169,6 +169,12 @@ func TestImage_IsPrivledgedImage(t *testing.T) {
 			pattern: "!@#$%^&*()",
 			want:    false,
 		},
+		{
+			name:    "test privileged with on extended path image",
+			image:   "docker.company.com/foo/bar",
+			pattern: "docker.company.com/foo",
+			want:    false,
+		},
 	}
 
 	for _, test := range tests {
