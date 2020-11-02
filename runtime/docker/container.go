@@ -118,8 +118,13 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	c.netConf = netConfig(b.ID, ctn.Name)
 
 	// check if the image is allowed to run privileged
-	for _, image := range c.privilegedImages {
-		if strings.HasPrefix(ctn.Image, image) {
+	for _, pattern := range c.privilegedImages {
+		privileged, err := image.IsPrivledgedImage(ctn.Image, pattern)
+		if err != nil {
+			return err
+		}
+
+		if privileged {
 			c.hostConf.Privileged = true
 		}
 	}

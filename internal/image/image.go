@@ -4,7 +4,9 @@
 
 package image
 
-import "github.com/docker/distribution/reference"
+import (
+	"github.com/docker/distribution/reference"
+)
 
 // Parse digests the provided image into a fully
 // qualified canonical reference. If an error
@@ -47,4 +49,39 @@ func ParseWithError(_image string) (string, error) {
 	//
 	// https://pkg.go.dev/github.com/docker/distribution/reference?tab=doc#TagNameOnly
 	return reference.TagNameOnly(_canonical).String(), nil
+}
+
+// IsPrivledgedImage digests the provided image with a
+// privledged pattern to see if the image meets the criteria
+// needed to allow a Docker Socket mount.
+func IsPrivledgedImage(image, privledged string) (bool, error) {
+	// parse the image provided into a
+	// named, fully qualified reference
+	//
+	// https://pkg.go.dev/github.com/docker/distribution/reference?tab=doc#ParseAnyReference
+	_refImg, err := reference.ParseNormalizedNamed(image)
+	if err != nil {
+		return false, err
+	}
+
+	// add default tag "latest" when tag does not exist
+	_refImg = reference.TagNameOnly(_refImg)
+
+	// check if the image matches the privledged pattern
+	//
+	// https://pkg.go.dev/github.com/docker/distribution/reference?tab=doc#ParseAnyReference
+	match, err := reference.FamiliarMatch(privledged, _refImg)
+	if err != nil {
+		return false, err
+	}
+
+	// if the image matches the pattern return true
+	//
+	// uses the internal Go match functionality:
+	// https://godoc.org/path#Match
+	if match {
+		return true, nil
+	}
+
+	return false, nil
 }

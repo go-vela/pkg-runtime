@@ -237,13 +237,14 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	}
 
 	// check if the image is allowed to run privileged
-	privileged := true
+	for _, pattern := range c.privilegedImages {
+		privileged, err := image.IsPrivledgedImage(ctn.Image, pattern)
+		if err != nil {
+			return err
+		}
 
-	for _, image := range c.privilegedImages {
-		if strings.HasPrefix(ctn.Image, image) {
-			container.SecurityContext = &v1.SecurityContext{
-				Privileged: &privileged,
-			}
+		container.SecurityContext = &v1.SecurityContext{
+			Privileged: &privileged,
 		}
 	}
 
