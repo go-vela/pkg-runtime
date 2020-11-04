@@ -131,7 +131,7 @@ func TestImage_ParseWithError(t *testing.T) {
 	}
 }
 
-func TestImage_IsPrivledgedImage(t *testing.T) {
+func TestImage_IsPrivilegedImage(t *testing.T) {
 	// setup tests
 	tests := []struct {
 		name    string
@@ -179,9 +179,9 @@ func TestImage_IsPrivledgedImage(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got, _ := IsPrivledgedImage(test.image, test.pattern)
+			got, _ := IsPrivilegedImage(test.image, test.pattern)
 			if got != test.want {
-				t.Errorf("IsPrivledgedImage is %v want %v", got, test.want)
+				t.Errorf("IsPrivilegedImage is %v want %v", got, test.want)
 			}
 		})
 	}

@@ -51,10 +51,10 @@ func ParseWithError(_image string) (string, error) {
 	return reference.TagNameOnly(_canonical).String(), nil
 }
 
-// IsPrivledgedImage digests the provided image with a
-// privledged pattern to see if the image meets the criteria
+// IsPrivilegedImage digests the provided image with a
+// privileged pattern to see if the image meets the criteria
 // needed to allow a Docker Socket mount.
-func IsPrivledgedImage(image, privledged string) (bool, error) {
+func IsPrivilegedImage(image, privileged string) (bool, error) {
 	// parse the image provided into a
 	// named, fully qualified reference
 	//
@@ -67,21 +67,13 @@ func IsPrivledgedImage(image, privledged string) (bool, error) {
 	// add default tag "latest" when tag does not exist
 	_refImg = reference.TagNameOnly(_refImg)
 
-	// check if the image matches the privledged pattern
+	// check if the image matches the privileged pattern
 	//
-	// https://pkg.go.dev/github.com/docker/distribution/reference?tab=doc#ParseAnyReference
-	match, err := reference.FamiliarMatch(privledged, _refImg)
+	// https://pkg.go.dev/github.com/docker/distribution/reference#FamiliarMatch
+	match, err := reference.FamiliarMatch(privileged, _refImg)
 	if err != nil {
 		return false, err
 	}
 
-	// if the image matches the pattern return true
-	//
-	// uses the internal Go match functionality:
-	// https://godoc.org/path#Match
-	if match {
-		return true, nil
-	}
-
-	return false, nil
+	return match, nil
 }

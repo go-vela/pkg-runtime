@@ -238,7 +238,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 
 	// check if the image is allowed to run privileged
 	for _, pattern := range c.privilegedImages {
-		privileged, err := image.IsPrivledgedImage(ctn.Image, pattern)
+		privileged, err := image.IsPrivilegedImage(ctn.Image, pattern)
 		if err != nil {
 			return err
 		}
