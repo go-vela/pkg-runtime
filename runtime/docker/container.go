@@ -104,6 +104,9 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
 
+	// allocate new host config with volume data
+	hostConf := c.hostConf
+
 	// check if the container pull policy is on_start
 	if strings.EqualFold(ctn.Pull, constants.PullOnStart) {
 		// send API call to create the image
@@ -125,7 +128,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		}
 
 		if privileged {
-			c.hostConf.Privileged = true
+			hostConf.Privileged = true
 		}
 	}
 
@@ -135,7 +138,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	_, err := c.docker.ContainerCreate(
 		ctx,
 		c.ctnConf,
-		c.hostConf,
+		hostConf,
 		c.netConf,
 		ctn.ID,
 	)
