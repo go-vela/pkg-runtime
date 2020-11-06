@@ -13,7 +13,7 @@ import (
 )
 
 // expected version for the Docker API
-const version = "1.38"
+const version = "1.40"
 
 type client struct {
 	// https://godoc.org/github.com/docker/docker/client#CommonAPIClient
