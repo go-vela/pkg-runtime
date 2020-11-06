@@ -226,15 +226,6 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 	go func() {
 		logrus.Tracef("copying logs for container %s", ctn.ID)
 
-		// defer closing all buffers
-		defer func() {
-			// close logs buffer
-			logs.Close()
-
-			// close in-memory pipe write closer
-			wc.Close()
-		}()
-
 		// copy container stdout and stderr logs to our in-memory pipe
 		//
 		// https://godoc.org/github.com/docker/docker/pkg/stdcopy#StdCopy
@@ -242,6 +233,12 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		if err != nil {
 			logrus.Errorf("unable to copy logs for container: %v", err)
 		}
+
+		// close logs buffer
+		logs.Close()
+
+		// close in-memory pipe write closer
+		wc.Close()
 	}()
 
 	return rc, nil
