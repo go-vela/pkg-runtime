@@ -59,13 +59,21 @@ func IsPrivilegedImage(image, privileged string) (bool, error) {
 	// named, fully qualified reference
 	//
 	// https://pkg.go.dev/github.com/docker/distribution/reference?tab=doc#ParseAnyReference
-	_refImg, err := reference.ParseNormalizedNamed(image)
+	_refImg, err := reference.ParseAnyReference(image)
+	if err != nil {
+		return false, err
+	}
+
+	// ensure we have the canonical form of the named reference
+	//
+	// https://pkg.go.dev/github.com/docker/distribution/reference?tab=doc#ParseNamed
+	_canonical, err := reference.ParseNamed(_refImg.String())
 	if err != nil {
 		return false, err
 	}
 
 	// add default tag "latest" when tag does not exist
-	_refImg = reference.TagNameOnly(_refImg)
+	_refImg = reference.TagNameOnly(_canonical)
 
 	// check if the image matches the privileged pattern
 	//
