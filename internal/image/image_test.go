@@ -130,3 +130,59 @@ func TestImage_ParseWithError(t *testing.T) {
 		}
 	}
 }
+
+func TestImage_IsPrivilegedImage(t *testing.T) {
+	// setup tests
+	tests := []struct {
+		name    string
+		image   string
+		pattern string
+		want    bool
+	}{
+		{
+			name:    "test privileged image without tag",
+			image:   "docker.company.com/foo/bar",
+			pattern: "docker.company.com/foo/bar",
+			want:    true,
+		},
+		{
+			name:    "test privileged image with tag",
+			image:   "docker.company.com/foo/bar:v0.1.0",
+			pattern: "docker.company.com/foo/bar",
+			want:    true,
+		},
+		{
+			name:    "test privileged image with tag",
+			image:   "docker.company.com/foo/bar",
+			pattern: "docker.company.com/foo/bar:v0.1.0",
+			want:    false,
+		},
+		{
+			name:    "test privileged with bad image",
+			image:   "!@#$%^&*()",
+			pattern: "docker.company.com/foo/bar",
+			want:    false,
+		},
+		{
+			name:    "test privileged with bad pattern",
+			image:   "docker.company.com/foo/bar",
+			pattern: "!@#$%^&*()",
+			want:    false,
+		},
+		{
+			name:    "test privileged with on extended path image",
+			image:   "docker.company.com/foo/bar",
+			pattern: "docker.company.com/foo",
+			want:    false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, _ := IsPrivilegedImage(test.image, test.pattern)
+			if got != test.want {
+				t.Errorf("IsPrivilegedImage is %v want %v", got, test.want)
+			}
+		})
+	}
+}

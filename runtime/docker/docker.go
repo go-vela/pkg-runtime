@@ -28,11 +28,14 @@ type client struct {
 
 	// set of host volumes to mount into every container
 	volumes []string
+	// set of images that are allowed to run in privileged mode
+	privilegedImages []string
 }
 
 // New returns an Engine implementation that
 // integrates with a Docker runtime.
-func New(_volumes []string) (*client, error) {
+// nolint // ignore client error claiming it's annoying usage
+func New(_volumes, _privilegedImages []string) (*client, error) {
 	// create Docker client from environment
 	//
 	// https://godoc.org/github.com/docker/docker/client#NewClientWithOpts
@@ -50,11 +53,12 @@ func New(_volumes []string) (*client, error) {
 	_ = docker.WithVersion(version)(_docker)
 
 	return &client{
-		docker:   _docker,
-		ctnConf:  new(container.Config),
-		hostConf: new(container.HostConfig),
-		netConf:  new(network.NetworkingConfig),
-		volumes:  _volumes,
+		docker:           _docker,
+		ctnConf:          new(container.Config),
+		hostConf:         new(container.HostConfig),
+		netConf:          new(network.NetworkingConfig),
+		volumes:          _volumes,
+		privilegedImages: _privilegedImages,
 	}, nil
 }
 
@@ -62,13 +66,15 @@ func New(_volumes []string) (*client, error) {
 // integrates with a mock Docker runtime.
 //
 // This function is intended for running tests only.
+// nolint // ignore client error claiming it's annoying usage
 func NewMock() (*client, error) {
 	// create Docker client from the mock client
 	_docker, _ := mock.New()
 
 	// create the client object
 	c := &client{
-		docker: _docker,
+		docker:           _docker,
+		privilegedImages: []string{"target/vela-git"},
 	}
 
 	return c, nil

@@ -48,4 +48,9 @@ var Flags = []cli.Flag{
 		Name:    "runtime.volumes",
 		Usage:   "set of volumes to mount into the runtime",
 	},
+	&cli.StringSliceFlag{
+		EnvVars: []string{"VELA_ALLOWED_PRIVILEGED_IMAGES", "RUNTIME_VOLUMES"},
+		Name:    "runtime.allowed-privileged-images",
+		Usage:   "set of images that are allowed to run in privileged mode",
+	},
 }

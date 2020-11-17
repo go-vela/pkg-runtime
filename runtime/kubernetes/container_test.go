@@ -196,6 +196,20 @@ func TestKubernetes_SetupContainer(t *testing.T) {
 				Pull:        "always",
 			},
 		},
+		{
+			failure: false,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_echo",
+				Commands:    []string{"echo", "hello"},
+				Directory:   "/vela/src/github.com/octocat/helloworld",
+				Environment: map[string]string{"FOO": "bar"},
+				Entrypoint:  []string{"/bin/sh", "-c"},
+				Image:       "target/vela-docker:latest",
+				Name:        "echo",
+				Number:      2,
+				Pull:        "always",
+			},
+		},
 	}
 
 	// run tests

@@ -100,8 +100,12 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 }
 
 // RunContainer creates and starts the pipeline container.
+// nolint // ignore the function length
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
+
+	// allocate new host config with volume data
+	hostConf := c.hostConf
 
 	// check if the container pull policy is on_start
 	if strings.EqualFold(ctn.Pull, constants.PullOnStart) {
@@ -116,13 +120,25 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	c.ctnConf = ctnConfig(ctn)
 	c.netConf = netConfig(b.ID, ctn.Name)
 
+	// check if the image is allowed to run privileged
+	for _, pattern := range c.privilegedImages {
+		privileged, err := image.IsPrivilegedImage(ctn.Image, pattern)
+		if err != nil {
+			return err
+		}
+
+		if privileged {
+			hostConf.Privileged = true
+		}
+	}
+
 	// send API call to create the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerCreate
 	_, err := c.docker.ContainerCreate(
 		ctx,
 		c.ctnConf,
-		c.hostConf,
+		hostConf,
 		c.netConf,
 		ctn.ID,
 	)

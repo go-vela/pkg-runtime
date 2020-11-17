@@ -236,6 +236,18 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		ImagePullPolicy: v1.PullAlways,
 	}
 
+	// check if the image is allowed to run privileged
+	for _, pattern := range c.privilegedImages {
+		privileged, err := image.IsPrivilegedImage(ctn.Image, pattern)
+		if err != nil {
+			return err
+		}
+
+		container.SecurityContext = &v1.SecurityContext{
+			Privileged: &privileged,
+		}
+	}
+
 	// check if the environment is provided
 	if len(ctn.Environment) > 0 {
 		// iterate through each element in the container environment

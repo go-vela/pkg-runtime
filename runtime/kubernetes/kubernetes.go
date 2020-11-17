@@ -20,11 +20,13 @@ type client struct {
 
 	// set of host volumes to mount into every container
 	volumes []string
+	// set of images that are allowed to run in privileged mode
+	privilegedImages []string
 }
 
 // New returns an Engine implementation that
 // integrates with a Kubernetes runtime.
-func New(namespace, path string, _volumes []string) (*client, error) {
+func New(namespace, path string, _volumes, _privilegedImages []string) (*client, error) {
 	// use the current context in kubeconfig
 	//
 	// when kube config is provided use out of cluster config option else
@@ -50,8 +52,9 @@ func New(namespace, path string, _volumes []string) (*client, error) {
 		pod: &v1.Pod{
 			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		},
-		kubernetes: _kubernetes,
-		volumes:    _volumes,
+		kubernetes:       _kubernetes,
+		volumes:          _volumes,
+		privilegedImages: _privilegedImages,
 	}, nil
 }
 
@@ -64,6 +67,7 @@ func NewMock(_pod *v1.Pod) (*client, error) {
 		namespace: "test",
 		pod:       _pod,
 		// https://pkg.go.dev/k8s.io/client-go/kubernetes/fake?tab=doc#NewSimpleClientset
-		kubernetes: fake.NewSimpleClientset(_pod),
+		kubernetes:       fake.NewSimpleClientset(_pod),
+		privilegedImages: []string{"target/vela-git"},
 	}, nil
 }

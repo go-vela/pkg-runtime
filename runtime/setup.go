@@ -20,10 +20,11 @@ import (
 // creating a Vela engine capable of integrating
 // with a configured runtime environment.
 type Setup struct {
-	Driver    string
-	Config    string
-	Namespace string
-	Volumes   []string
+	Driver           string
+	Config           string
+	Namespace        string
+	Volumes          []string
+	PrivilegedImages []string
 }
 
 // Docker creates and returns a Vela engine capable of
@@ -34,7 +35,7 @@ func (s *Setup) Docker() (Engine, error) {
 	// create new Docker runtime engine
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/docker?tab=doc#New
-	return docker.New(s.Volumes)
+	return docker.New(s.Volumes, s.PrivilegedImages)
 }
 
 // Kubernetes creates and returns a Vela engine capable of
@@ -45,7 +46,7 @@ func (s *Setup) Kubernetes() (Engine, error) {
 	// create new Kubernetes runtime engine
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/kubernetes?tab=doc#New
-	return kubernetes.New(s.Namespace, s.Config, s.Volumes)
+	return kubernetes.New(s.Namespace, s.Config, s.Volumes, s.PrivilegedImages)
 }
 
 // Validate verifies the necessary fields for the
