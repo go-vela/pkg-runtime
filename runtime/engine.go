@@ -15,6 +15,12 @@ import (
 // with the different supported Runtime environments.
 type Engine interface {
 
+	// Engine Interface Functions
+
+	// Driver defines a function that outputs
+	// the configured runtime driver.
+	Driver() string
+
 	// Container Engine Interface Functions
 
 	// InspectContainer defines a function that inspects

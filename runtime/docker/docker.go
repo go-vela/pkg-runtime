@@ -74,7 +74,7 @@ func NewMock() (*client, error) {
 	// create the client object
 	c := &client{
 		docker:           _docker,
-		privilegedImages: []string{"target/vela-git"},
+		privilegedImages: []string{},
 	}
 
 	return c, nil
