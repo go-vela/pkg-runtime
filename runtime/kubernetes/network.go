@@ -90,13 +90,20 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte, error) {
 	logrus.Tracef("inspecting network for pipeline %s", b.ID)
 
+	// TODO: consider updating this command
+	//
+	// create output for inspecting volume
+	output := []byte(
+		fmt.Sprintf("$ kubectl get pod -o=jsonpath='{.spec.hostAliases}' %s\n", b.ID),
+	)
+
 	// marshal the network information from the pod
-	bytes, err := json.Marshal(c.pod.Spec.HostAliases)
+	network, err := json.MarshalIndent(c.pod.Spec.HostAliases, "", " ")
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
-	return bytes, nil
+	return append(output, append(network, "\n"...)...), nil
 }
 
 // RemoveNetwork deletes the pipeline network.

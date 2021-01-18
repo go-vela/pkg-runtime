@@ -6,8 +6,6 @@ package kubernetes
 
 import (
 	"context"
-	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/go-vela/types/pipeline"
@@ -56,12 +54,6 @@ func TestKubernetes_CreateVolume(t *testing.T) {
 }
 
 func TestKubernetes_InspectVolume(t *testing.T) {
-	// setup types
-	want, err := json.Marshal(_pod.Spec.Volumes)
-	if err != nil {
-		t.Errorf("unable to marshal pod volumes: %v", err)
-	}
-
 	// setup tests
 	tests := []struct {
 		failure  bool
@@ -87,7 +79,7 @@ func TestKubernetes_InspectVolume(t *testing.T) {
 			t.Errorf("unable to create runtime engine: %v", err)
 		}
 
-		got, err := _engine.InspectVolume(context.Background(), test.pipeline)
+		_, err = _engine.InspectVolume(context.Background(), test.pipeline)
 
 		if test.failure {
 			if err == nil {
@@ -99,10 +91,6 @@ func TestKubernetes_InspectVolume(t *testing.T) {
 
 		if err != nil {
 			t.Errorf("InspectVolume returned err: %v", err)
-		}
-
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("InspectVolume is %v, want %v", string(got), string(want))
 		}
 	}
 }
