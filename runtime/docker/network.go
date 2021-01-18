@@ -7,6 +7,7 @@ package docker
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
@@ -47,12 +48,17 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 	// https://godoc.org/github.com/docker/docker/api/types#NetworkInspectOptions
 	opts := types.NetworkInspectOptions{}
 
+	// create output for inspecting network
+	output := []byte(
+		fmt.Sprintf("$ docker network inspect %s\n", b.ID),
+	)
+
 	// send API call to inspect the network
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.NetworkInspect
 	n, err := c.docker.NetworkInspect(ctx, b.ID, opts)
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
 	// convert network type NetworkResource to bytes with pretty print
@@ -60,11 +66,11 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 	// https://godoc.org/github.com/docker/docker/api/types#NetworkResource
 	network, err := json.MarshalIndent(n, "", " ")
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
 	// add new line to end of bytes
-	return append(network, "\n"...), nil
+	return append(output, append(network, "\n"...)...), nil
 }
 
 // RemoveNetwork deletes the pipeline network.

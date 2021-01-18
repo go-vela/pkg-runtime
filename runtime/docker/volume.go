@@ -7,6 +7,7 @@ package docker
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
@@ -48,12 +49,17 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, error) {
 	logrus.Tracef("inspecting volume for pipeline %s", b.ID)
 
+	// create output for inspecting volume
+	output := []byte(
+		fmt.Sprintf("$ docker volume inspect %s\n", b.ID),
+	)
+
 	// send API call to inspect the volume
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.VolumeInspect
 	v, err := c.docker.VolumeInspect(ctx, b.ID)
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
 	// convert volume type Volume to bytes with pretty print
@@ -61,11 +67,11 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 	// https://godoc.org/github.com/docker/docker/api/types#Volume
 	volume, err := json.MarshalIndent(v, "", " ")
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
 	// add new line to end of bytes
-	return append(volume, "\n"...), nil
+	return append(output, append(volume, "\n"...)...), nil
 }
 
 // RemoveVolume deletes the pipeline volume.
