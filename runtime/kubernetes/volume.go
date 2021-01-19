@@ -74,13 +74,20 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, error) {
 	logrus.Tracef("inspecting volume for pipeline %s", b.ID)
 
+	// TODO: consider updating this command
+	//
+	// create output for inspecting volume
+	output := []byte(
+		fmt.Sprintf("$ kubectl get pod -o=jsonpath='{.spec.volumes}' %s\n", b.ID),
+	)
+
 	// marshal the volume information from the pod
-	bytes, err := json.Marshal(c.pod.Spec.Volumes)
+	volume, err := json.MarshalIndent(c.pod.Spec.Volumes, "", " ")
 	if err != nil {
 		return nil, err
 	}
 
-	return bytes, nil
+	return append(output, append(volume, "\n"...)...), nil
 }
 
 // RemoveVolume deletes the pipeline volume.

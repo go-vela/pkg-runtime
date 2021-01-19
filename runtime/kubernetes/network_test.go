@@ -6,8 +6,6 @@ package kubernetes
 
 import (
 	"context"
-	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/go-vela/types/pipeline"
@@ -60,11 +58,6 @@ func TestKubernetes_InspectNetwork(t *testing.T) {
 		t.Errorf("unable to create runtime engine: %v", err)
 	}
 
-	want, err := json.Marshal(_pod.Spec.HostAliases)
-	if err != nil {
-		t.Errorf("unable to marshal pod network: %v", err)
-	}
-
 	// setup tests
 	tests := []struct {
 		failure  bool
@@ -82,7 +75,7 @@ func TestKubernetes_InspectNetwork(t *testing.T) {
 
 	// run tests
 	for _, test := range tests {
-		got, err := _engine.InspectNetwork(context.Background(), test.pipeline)
+		_, err = _engine.InspectNetwork(context.Background(), test.pipeline)
 
 		if test.failure {
 			if err == nil {
@@ -94,10 +87,6 @@ func TestKubernetes_InspectNetwork(t *testing.T) {
 
 		if err != nil {
 			t.Errorf("InspectNetwork returned err: %v", err)
-		}
-
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("InspectNetwork is %v, want %v", string(got), string(want))
 		}
 	}
 }

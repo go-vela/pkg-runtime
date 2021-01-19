@@ -59,17 +59,24 @@ func (c *client) CreateImage(ctx context.Context, ctn *pipeline.Container) error
 func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]byte, error) {
 	logrus.Tracef("inspecting image for container %s", ctn.ID)
 
+	// create output for inspecting image
+	output := []byte(
+		fmt.Sprintf("$ docker image inspect %s\n", ctn.Image),
+	)
+
 	// parse image from container
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/internal/image#ParseWithError
 	_image, err := image.ParseWithError(ctn.Image)
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
 	// check if the container pull policy is on start
 	if strings.EqualFold(ctn.Pull, constants.PullOnStart) {
-		return []byte(fmt.Sprintf("skipped for container %s due to pull policy %s\n", ctn.ID, ctn.Pull)), nil
+		return []byte(
+			fmt.Sprintf("skipped for container %s due to pull policy %s\n", ctn.ID, ctn.Pull),
+		), nil
 	}
 
 	// send API call to inspect the image
@@ -77,8 +84,9 @@ func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]b
 	// https://godoc.org/github.com/docker/docker/client#Client.ImageInspectWithRaw
 	i, _, err := c.docker.ImageInspectWithRaw(ctx, _image)
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
-	return []byte(i.ID + "\n"), nil
+	// add new line to end of bytes
+	return append(output, []byte(i.ID+"\n")...), nil
 }
