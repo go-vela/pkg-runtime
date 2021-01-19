@@ -117,7 +117,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 			container.VolumeMounts = []v1.VolumeMount{
 				{
 					Name:      b.ID,
-					MountPath: "/vela",
+					MountPath: constants.WorkspaceMount,
 				},
 			}
 

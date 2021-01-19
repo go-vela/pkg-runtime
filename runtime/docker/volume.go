@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/volume"
 
 	vol "github.com/go-vela/pkg-runtime/internal/volume"
+	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -99,7 +100,7 @@ func hostConfig(id string, volumes []string) *container.HostConfig {
 		{
 			Type:   mount.TypeVolume,
 			Source: id,
-			Target: "/vela",
+			Target: constants.WorkspaceMount,
 		},
 	}
 
