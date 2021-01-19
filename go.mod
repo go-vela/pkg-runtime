@@ -24,6 +24,6 @@ require (
 	gotest.tools/v3 v3.0.3
 	k8s.io/api v0.17.3
 	k8s.io/apimachinery v0.17.3
-	k8s.io/client-go v0.17.3
+	k8s.io/client-go/v12/v12 v12.0.0
 	k8s.io/utils v0.0.0-20201005171033-6301aaf42dc7 // indirect
 )
