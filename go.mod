@@ -22,7 +22,7 @@ require (
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	google.golang.org/genproto v0.0.0-20201013134114-7f9ee70cb474 // indirect
 	gotest.tools/v3 v3.0.3
-	k8s.io/api v0.17.3
+	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.17.3
 	k8s.io/client-go v0.17.3
 	k8s.io/utils v0.0.0-20201005171033-6301aaf42dc7 // indirect
