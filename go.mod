@@ -10,7 +10,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-vela/compiler v0.7.0-rc3
-	github.com/go-vela/mock v0.7.0-rc2
+	github.com/go-vela/mock v0.7.0-rc4
 	github.com/go-vela/types v0.7.0-rc3
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.3.1 // indirect
