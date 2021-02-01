@@ -18,6 +18,8 @@ import (
 )
 
 // run executes the package based off the configuration provided.
+//
+// nolint: funlen // ignore function length due to comments
 func run(c *cli.Context) error {
 	// set the log level for the plugin
 	switch c.String("runtime.log.level") {
@@ -79,6 +81,8 @@ func run(c *cli.Context) error {
 	defer func() {
 		for _, step := range p.Steps {
 			// TODO: remove hardcoded reference
+			//
+			// nolint: goconst // ignore init as constant
 			if step.Name == "init" {
 				continue
 			}
