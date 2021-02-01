@@ -26,6 +26,8 @@ type client struct {
 
 // New returns an Engine implementation that
 // integrates with a Kubernetes runtime.
+//
+// nolint: golint // ignore returning unexported client
 func New(namespace, path string, _volumes, _privilegedImages []string) (*client, error) {
 	// use the current context in kubeconfig
 	//
@@ -62,6 +64,8 @@ func New(namespace, path string, _volumes, _privilegedImages []string) (*client,
 // integrates with a Kubernetes runtime.
 //
 // This function is intended for running tests only.
+//
+// nolint: golint // ignore returning unexported client
 func NewMock(_pod *v1.Pod) (*client, error) {
 	return &client{
 		namespace: "test",
