@@ -53,6 +53,8 @@ func FromGinContext(c *gin.Context) Engine {
 // WithContext inserts the runtime Engine into the context.Context.
 func WithContext(c context.Context, e Engine) context.Context {
 	// set the runtime Engine in the context.Context
+	//
+	// nolint: golint,staticcheck // ignore using string with context value
 	return context.WithValue(c, key, e)
 }
 

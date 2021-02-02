@@ -50,7 +50,7 @@ func TestKubernetes_New(t *testing.T) {
 	}
 }
 
-// setup global variables used for testing
+// setup global variables used for testing.
 var (
 	_container = &pipeline.Container{
 		ID:          "step-github-octocat-1-clone",

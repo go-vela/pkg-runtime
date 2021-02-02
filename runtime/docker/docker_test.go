@@ -54,7 +54,7 @@ func TestDocker_New(t *testing.T) {
 	}
 }
 
-// setup global variables used for testing
+// setup global variables used for testing.
 var (
 	_container = &pipeline.Container{
 		ID:          "step_github_octocat_1_clone",

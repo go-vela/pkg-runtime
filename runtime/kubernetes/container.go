@@ -102,6 +102,8 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 }
 
 // RunContainer creates and starts the pipeline container.
+//
+// nolint: funlen,lll // ignore function length and long line length
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
 
@@ -278,6 +280,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 }
 
 // TailContainer captures the logs for the pipeline container.
+//
+// nolint: lll // ignore long line length due to variable names
 func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io.ReadCloser, error) {
 	logrus.Tracef("tailing output for container %s", ctn.ID)
 
@@ -315,6 +319,8 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		reader := bufio.NewReader(stream)
 
 		// peek at container logs from the stream
+		//
+		// nolint: gomnd // ignore magic number
 		bytes, err := reader.Peek(5)
 		if err != nil {
 			// skip so we resend API call to capture stream

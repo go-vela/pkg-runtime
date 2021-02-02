@@ -29,6 +29,7 @@ func setupBuild() *library.Build {
 	b.SetCreated(time.Now().UTC().Unix())
 	b.SetDeploy("")
 	b.SetClone("https://github.com/go-vela/pkg-runtime.git")
+	// nolint: lll // ignore long line length due to link
 	b.SetSource("https://github.com/go-vela/pkg-runtime/commit/0a08eb2eea09dd58498a4325fee0cb0ab3b66fc9")
 	b.SetTitle("push received from https://github.com/go-vela/pkg-runtime")
 	b.SetMessage("initial commit")
@@ -58,6 +59,7 @@ func setupRepo() *library.Repo {
 	r.SetLink("https://github.com/go-vela/pkg-runtime")
 	r.SetClone("https://github.com/go-vela/pkg-runtime.git")
 	r.SetBranch("master")
+	// nolint: gomnd // ignore magic number
 	r.SetTimeout(30)
 	r.SetVisibility("public")
 	r.SetPrivate(false)
