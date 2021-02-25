@@ -106,7 +106,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	logrus.Tracef("running container %s", ctn.ID)
 
 	// allocate new host config with volume data
-	hostConf := c.hostConf
+	hostConf := hostConfig(b.ID, c.volumes)
 
 	// check if the container pull policy is on_start
 	if strings.EqualFold(ctn.Pull, constants.PullOnStart) {
