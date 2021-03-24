@@ -38,7 +38,10 @@ func TestDocker_New(t *testing.T) {
 		// patch environment for tests
 		env.PatchAll(t, test.envs)
 
-		_, err := New(nil, nil)
+		_, err := New(
+			WithPrivilegedImages([]string{"alpine"}),
+			WithHostVolumes([]string{"/foo/bar.txt:/foo/bar.txt"}),
+		)
 
 		if test.failure {
 			if err == nil {
