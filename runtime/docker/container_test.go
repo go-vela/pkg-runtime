@@ -174,7 +174,7 @@ func TestDocker_RunContainer(t *testing.T) {
 
 	// run tests
 	for _, test := range tests {
-		_engine.hostConf = new(container.HostConfig)
+		_engine.HostConfig = new(container.HostConfig)
 
 		err = _engine.RunContainer(context.Background(), test.container, test.pipeline)
 
