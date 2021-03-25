@@ -82,7 +82,7 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 	// add the network definition to the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.pod.Spec.HostAliases = append(c.pod.Spec.HostAliases, network)
+	c.Pod.Spec.HostAliases = append(c.Pod.Spec.HostAliases, network)
 
 	return nil
 }
@@ -99,7 +99,7 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 	)
 
 	// marshal the network information from the pod
-	network, err := json.MarshalIndent(c.pod.Spec.HostAliases, "", " ")
+	network, err := json.MarshalIndent(c.Pod.Spec.HostAliases, "", " ")
 	if err != nil {
 		return output, err
 	}
@@ -118,7 +118,7 @@ func (c *client) RemoveNetwork(ctx context.Context, b *pipeline.Build) error {
 	// remove the network definition from the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.pod.Spec.HostAliases = []v1.HostAlias{}
+	c.Pod.Spec.HostAliases = []v1.HostAlias{}
 
 	return nil
 }
