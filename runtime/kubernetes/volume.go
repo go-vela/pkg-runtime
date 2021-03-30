@@ -46,17 +46,17 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	// add the volume definition to the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.pod.Spec.Volumes = append(c.pod.Spec.Volumes, volume)
+	c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, volume)
 
 	// check if other volumes were provided
-	if len(c.volumes) > 0 {
+	if len(c.config.Volumes) > 0 {
 		// iterate through all volumes provided
-		for k, v := range c.volumes {
+		for k, v := range c.config.Volumes {
 			// parse the volume provided
 			_volume := vol.Parse(v)
 
 			// add the volume to the set of pod volumes
-			c.pod.Spec.Volumes = append(c.pod.Spec.Volumes, v1.Volume{
+			c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, v1.Volume{
 				Name: fmt.Sprintf("%s_%d", b.ID, k),
 				VolumeSource: v1.VolumeSource{
 					HostPath: &v1.HostPathVolumeSource{
@@ -82,7 +82,7 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 	)
 
 	// marshal the volume information from the pod
-	volume, err := json.MarshalIndent(c.pod.Spec.Volumes, "", " ")
+	volume, err := json.MarshalIndent(c.Pod.Spec.Volumes, "", " ")
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	// remove the volume definition from the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.pod.Spec.Volumes = []v1.Volume{}
+	c.Pod.Spec.Volumes = []v1.Volume{}
 
 	return nil
 }

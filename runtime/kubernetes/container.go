@@ -36,7 +36,7 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 	// send API call to capture the container
 	//
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
-	pod, err := c.kubernetes.CoreV1().Pods(c.namespace).Get(c.pod.ObjectMeta.Name, opts)
+	pod, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Get(c.Pod.ObjectMeta.Name, opts)
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 	// TODO: investigate way to move this logic
 	//
 	// check if the pod is already created
-	if len(c.pod.ObjectMeta.Name) > 0 {
+	if len(c.Pod.ObjectMeta.Name) > 0 {
 		// create variables for the delete options
 		//
 		// This is necessary because the delete options
@@ -86,14 +86,14 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 			PropagationPolicy: &policy,
 		}
 
-		logrus.Infof("removing pod %s", c.pod.ObjectMeta.Name)
+		logrus.Infof("removing pod %s", c.Pod.ObjectMeta.Name)
 		// send API call to delete the pod
-		err := c.kubernetes.CoreV1().Pods(c.namespace).Delete(c.pod.ObjectMeta.Name, opts)
+		err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Delete(c.Pod.ObjectMeta.Name, opts)
 		if err != nil {
 			return err
 		}
 
-		c.pod = &v1.Pod{
+		c.Pod = &v1.Pod{
 			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
 		}
 	}
@@ -110,11 +110,11 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// TODO: investigate way to move this logic
 	//
 	// check if the pod is already created
-	if len(c.pod.ObjectMeta.Name) == 0 {
+	if len(c.Pod.ObjectMeta.Name) == 0 {
 		// TODO: investigate way to make this cleaner
 		//
 		// iterate through each container in the pod
-		for _, container := range c.pod.Spec.Containers {
+		for _, container := range c.Pod.Spec.Containers {
 			// update the container with the volume to mount
 			container.VolumeMounts = []v1.VolumeMount{
 				{
@@ -124,9 +124,9 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 			}
 
 			// check if other volumes were provided
-			if len(c.volumes) > 0 {
+			if len(c.config.Volumes) > 0 {
 				// iterate through all volumes provided
-				for k, v := range c.volumes {
+				for k, v := range c.config.Volumes {
 					// parse the volume provided
 					_volume := vol.Parse(v)
 
@@ -142,7 +142,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		// create the object metadata for the pod
 		//
 		// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#ObjectMeta
-		c.pod.ObjectMeta = metav1.ObjectMeta{
+		c.Pod.ObjectMeta = metav1.ObjectMeta{
 			Name:   b.ID,
 			Labels: map[string]string{"pipeline": b.ID},
 		}
@@ -150,13 +150,13 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		// create the restart policy for the pod
 		//
 		// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#RestartPolicy
-		c.pod.Spec.RestartPolicy = v1.RestartPolicyNever
+		c.Pod.Spec.RestartPolicy = v1.RestartPolicyNever
 
-		logrus.Infof("creating pod %s", c.pod.ObjectMeta.Name)
+		logrus.Infof("creating pod %s", c.Pod.ObjectMeta.Name)
 		// send API call to create the pod
 		//
 		// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
-		_, err := c.kubernetes.CoreV1().Pods(c.namespace).Create(c.pod)
+		_, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Create(c.Pod)
 		if err != nil {
 			return err
 		}
@@ -169,35 +169,35 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	}
 
 	// set the pod container image to the parsed step image
-	c.pod.Spec.Containers[ctn.Number-2].Image = _image
+	c.Pod.Spec.Containers[ctn.Number-2].Image = _image
 
 	// handle the container pull policy
 	switch ctn.Pull {
 	case constants.PullAlways:
 		// set the pod container pull policy to always
-		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
+		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
 	case constants.PullNever:
 		// set the pod container pull policy to never
-		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullNever
+		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullNever
 	case constants.PullOnStart:
 		// set the pod container pull policy to always
 		//
 		// if the pipeline container image should be pulled on start, than
 		// we force Kubernetes to pull the image on start with the always
 		// pull policy for the pod container
-		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
+		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
 	case constants.PullNotPresent:
 		fallthrough
 	default:
 		// default the pod container pull policy to if not present
-		c.pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullIfNotPresent
+		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullIfNotPresent
 	}
 
 	// send API call to patch the pod with the new container image
 	//
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
-	_, err = c.kubernetes.CoreV1().Pods(c.namespace).Patch(
-		c.pod.ObjectMeta.Name,
+	_, err = c.Kubernetes.CoreV1().Pods(c.config.Namespace).Patch(
+		c.Pod.ObjectMeta.Name,
 		types.StrategicMergePatchType,
 		[]byte(fmt.Sprintf(imagePatch, ctn.ID, _image)),
 		"",
@@ -239,7 +239,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	}
 
 	// check if the image is allowed to run privileged
-	for _, pattern := range c.privilegedImages {
+	for _, pattern := range c.config.Images {
 		privileged, err := image.IsPrivilegedImage(ctn.Image, pattern)
 		if err != nil {
 			return err
@@ -274,7 +274,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	// add the container definition to the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.pod.Spec.Containers = append(c.pod.Spec.Containers, container)
+	c.Pod.Spec.Containers = append(c.Pod.Spec.Containers, container)
 
 	return nil
 }
@@ -306,9 +306,9 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodExpansion
 		// ->
 		// https://pkg.go.dev/k8s.io/client-go/rest?tab=doc#Request.Stream
-		stream, err := c.kubernetes.CoreV1().
-			Pods(c.namespace).
-			GetLogs(c.pod.ObjectMeta.Name, opts).
+		stream, err := c.Kubernetes.CoreV1().
+			Pods(c.config.Namespace).
+			GetLogs(c.Pod.ObjectMeta.Name, opts).
 			Stream()
 		if err != nil {
 			logrus.Errorf("%v", err)
@@ -367,7 +367,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 	logrus.Tracef("waiting for container %s", ctn.ID)
 
 	// create label selector for watching the pod
-	selector := fmt.Sprintf("pipeline=%s", c.pod.ObjectMeta.Name)
+	selector := fmt.Sprintf("pipeline=%s", c.Pod.ObjectMeta.Name)
 
 	// create options for watching the container
 	opts := metav1.ListOptions{
@@ -380,7 +380,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
 	// ->
 	// https://pkg.go.dev/k8s.io/apimachinery/pkg/watch?tab=doc#Interface
-	watch, err := c.kubernetes.CoreV1().Pods(c.namespace).Watch(opts)
+	watch, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Watch(opts)
 	if err != nil {
 		return err
 	}
@@ -394,7 +394,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 		// convert the object from the result to a pod
 		pod, ok := result.Object.(*v1.Pod)
 		if !ok {
-			return fmt.Errorf("unable to watch pod %s", c.pod.ObjectMeta.Name)
+			return fmt.Errorf("unable to watch pod %s", c.Pod.ObjectMeta.Name)
 		}
 
 		// check if the pod is in a pending state

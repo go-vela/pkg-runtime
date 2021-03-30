@@ -49,7 +49,12 @@ func (s *Setup) Kubernetes() (Engine, error) {
 	// create new Kubernetes runtime engine
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/kubernetes?tab=doc#New
-	return kubernetes.New(s.Namespace, s.Config, s.Volumes, s.PrivilegedImages)
+	return kubernetes.New(
+		kubernetes.WithConfigFile(s.Config),
+		kubernetes.WithNamespace(s.Namespace),
+		kubernetes.WithPrivilegedImages(s.PrivilegedImages),
+		kubernetes.WithHostVolumes(s.Volumes),
+	)
 }
 
 // Validate verifies the necessary fields for the

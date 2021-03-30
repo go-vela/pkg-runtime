@@ -270,7 +270,7 @@ func TestKubernetes_WaitContainer(t *testing.T) {
 	_kubernetes.PrependWatchReactor("pods", reactor)
 
 	// overwrite the mock kubernetes client
-	_engine.kubernetes = _kubernetes
+	_engine.Kubernetes = _kubernetes
 
 	// setup tests
 	tests := []struct {
