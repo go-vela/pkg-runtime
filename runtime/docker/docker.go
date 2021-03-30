@@ -15,29 +15,48 @@ import (
 // expected version for the Docker API.
 const version = "1.40"
 
+type config struct {
+	// specifies a list of privileged images to use for the Docker client
+	Images []string
+	// specifies a list of host volumes to use for the Docker client
+	Volumes []string
+}
+
 type client struct {
+	config *config
 	// https://godoc.org/github.com/docker/docker/client#CommonAPIClient
-	docker docker.CommonAPIClient
-
+	Docker docker.CommonAPIClient
 	// https://godoc.org/github.com/docker/docker/api/types/container#Config
-	ctnConf *container.Config
+	ContainerConfig *container.Config
 	// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
-	hostConf *container.HostConfig
+	HostConfig *container.HostConfig
 	// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
-	netConf *network.NetworkingConfig
-
-	// set of host volumes to mount into every container
-	volumes []string
-	// set of images that are allowed to run in privileged mode
-	privilegedImages []string
+	NetworkConfig *network.NetworkingConfig
 }
 
 // New returns an Engine implementation that
 // integrates with a Docker runtime.
 //
 // nolint: golint // ignore returning unexported client
-func New(_volumes, _privilegedImages []string) (*client, error) {
-	// create Docker client from environment
+func New(opts ...ClientOpt) (*client, error) {
+	// create new Docker client
+	c := new(client)
+
+	// create new fields
+	c.config = new(config)
+	c.ContainerConfig = new(container.Config)
+	c.HostConfig = new(container.HostConfig)
+	c.NetworkConfig = new(network.NetworkingConfig)
+
+	// apply all provided configuration options
+	for _, opt := range opts {
+		err := opt(c)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// create new Docker client from environment
 	//
 	// https://godoc.org/github.com/docker/docker/client#NewClientWithOpts
 	_docker, err := docker.NewClientWithOpts(docker.FromEnv)
@@ -53,14 +72,10 @@ func New(_volumes, _privilegedImages []string) (*client, error) {
 	// https://godoc.org/github.com/docker/docker/client#WithVersion
 	_ = docker.WithVersion(version)(_docker)
 
-	return &client{
-		docker:           _docker,
-		ctnConf:          new(container.Config),
-		hostConf:         new(container.HostConfig),
-		netConf:          new(network.NetworkingConfig),
-		volumes:          _volumes,
-		privilegedImages: _privilegedImages,
-	}, nil
+	// set the Docker client in the runtime client
+	c.Docker = _docker
+
+	return c, nil
 }
 
 // NewMock returns an Engine implementation that
@@ -69,15 +84,23 @@ func New(_volumes, _privilegedImages []string) (*client, error) {
 // This function is intended for running tests only.
 //
 // nolint: golint // ignore returning unexported client
-func NewMock() (*client, error) {
-	// create Docker client from the mock client
-	_docker, _ := mock.New()
-
-	// create the client object
-	c := &client{
-		docker:           _docker,
-		privilegedImages: []string{"target/vela-git"},
+func NewMock(opts ...ClientOpt) (*client, error) {
+	// create new Docker runtime client
+	c, err := New(opts...)
+	if err != nil {
+		return nil, err
 	}
+
+	// create Docker client from the mock client
+	//
+	// https://pkg.go.dev/github.com/go-vela/mock/docker#New
+	_docker, err := mock.New()
+	if err != nil {
+		return nil, err
+	}
+
+	// set the Docker client in the runtime client
+	c.Docker = _docker
 
 	return c, nil
 }

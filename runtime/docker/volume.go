@@ -25,7 +25,7 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("creating volume for pipeline %s", b.ID)
 
 	// create host configuration
-	c.hostConf = hostConfig(b.ID, c.volumes)
+	c.HostConfig = hostConfig(b.ID, c.config.Volumes)
 
 	// create options for creating volume
 	//
@@ -38,7 +38,7 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	// send API call to create the volume
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.VolumeCreate
-	_, err := c.docker.VolumeCreate(ctx, opts)
+	_, err := c.Docker.VolumeCreate(ctx, opts)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (c *client) InspectVolume(ctx context.Context, b *pipeline.Build) ([]byte, 
 	// send API call to inspect the volume
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.VolumeInspect
-	v, err := c.docker.VolumeInspect(ctx, b.ID)
+	v, err := c.Docker.VolumeInspect(ctx, b.ID)
 	if err != nil {
 		return output, err
 	}
@@ -82,7 +82,7 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	// send API call to remove the volume
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.VolumeRemove
-	err := c.docker.VolumeRemove(ctx, b.ID, true)
+	err := c.Docker.VolumeRemove(ctx, b.ID, true)
 	if err != nil {
 		return err
 	}
