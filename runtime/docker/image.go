@@ -39,7 +39,7 @@ func (c *client) CreateImage(ctx context.Context, ctn *pipeline.Container) error
 	// send API call to pull the image for the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ImagePull
-	reader, err := c.docker.ImagePull(ctx, _image, opts)
+	reader, err := c.Docker.ImagePull(ctx, _image, opts)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]b
 	// send API call to inspect the image
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ImageInspectWithRaw
-	i, _, err := c.docker.ImageInspectWithRaw(ctx, _image)
+	i, _, err := c.Docker.ImageInspectWithRaw(ctx, _image)
 	if err != nil {
 		return output, err
 	}

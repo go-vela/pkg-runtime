@@ -30,7 +30,7 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 	// send API call to inspect the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerInspect
-	container, err := c.docker.ContainerInspect(ctx, ctn.ID)
+	container, err := c.Docker.ContainerInspect(ctx, ctn.ID)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 	// send API call to inspect the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerInspect
-	container, err := c.docker.ContainerInspect(ctx, ctn.ID)
+	container, err := c.Docker.ContainerInspect(ctx, ctn.ID)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 		// send API call to kill the container
 		//
 		// https://godoc.org/github.com/docker/docker/client#Client.ContainerKill
-		err := c.docker.ContainerKill(ctx, ctn.ID, "SIGKILL")
+		err := c.Docker.ContainerKill(ctx, ctn.ID, "SIGKILL")
 		if err != nil {
 			return err
 		}
@@ -82,19 +82,19 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 	// send API call to remove the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerRemove
-	err = c.docker.ContainerRemove(ctx, ctn.ID, opts)
+	err = c.Docker.ContainerRemove(ctx, ctn.ID, opts)
 	if err != nil {
 		return err
 	}
 
-	// Empty the container config
-	c.ctnConf = nil
+	// empty the container config
+	c.ContainerConfig = nil
 
-	// Empty the host config
-	c.hostConf = nil
+	// empty the host config
+	c.HostConfig = nil
 
-	// Empty the host config
-	c.netConf = nil
+	// empty the network config
+	c.NetworkConfig = nil
 
 	return nil
 }
@@ -106,7 +106,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	logrus.Tracef("running container %s", ctn.ID)
 
 	// allocate new host config with volume data
-	hostConf := hostConfig(b.ID, c.volumes)
+	hostConf := hostConfig(b.ID, c.config.Volumes)
 
 	// check if the container pull policy is on_start
 	if strings.EqualFold(ctn.Pull, constants.PullOnStart) {
@@ -118,11 +118,11 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	}
 
 	// create container configuration
-	c.ctnConf = ctnConfig(ctn)
-	c.netConf = netConfig(b.ID, ctn.Name)
+	c.ContainerConfig = ctnConfig(ctn)
+	c.NetworkConfig = netConfig(b.ID, ctn.Name)
 
 	// check if the image is allowed to run privileged
-	for _, pattern := range c.privilegedImages {
+	for _, pattern := range c.config.Images {
 		privileged, err := image.IsPrivilegedImage(ctn.Image, pattern)
 		if err != nil {
 			return err
@@ -136,11 +136,11 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// send API call to create the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerCreate
-	_, err := c.docker.ContainerCreate(
+	_, err := c.Docker.ContainerCreate(
 		ctx,
-		c.ctnConf,
+		c.ContainerConfig,
 		hostConf,
-		c.netConf,
+		c.NetworkConfig,
 		ctn.ID,
 	)
 	if err != nil {
@@ -155,7 +155,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// send API call to start the container
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerStart
-	err = c.docker.ContainerStart(ctx, ctn.ID, opts)
+	err = c.Docker.ContainerStart(ctx, ctn.ID, opts)
 	if err != nil {
 		return err
 	}
@@ -196,7 +196,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	// check if the container image exists on the host
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ImageInspectWithRaw
-	_, _, err = c.docker.ImageInspectWithRaw(ctx, _image)
+	_, _, err = c.Docker.ImageInspectWithRaw(ctx, _image)
 	if err == nil {
 		return nil
 	}
@@ -233,7 +233,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 	// send API call to capture the container logs
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerLogs
-	logs, err := c.docker.ContainerLogs(ctx, ctn.ID, opts)
+	logs, err := c.Docker.ContainerLogs(ctx, ctn.ID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 	// send API call to wait for the container completion
 	//
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerWait
-	wait, errC := c.docker.ContainerWait(ctx, ctn.ID, container.WaitConditionNotRunning)
+	wait, errC := c.Docker.ContainerWait(ctx, ctn.ID, container.WaitConditionNotRunning)
 
 	select {
 	case <-wait:
