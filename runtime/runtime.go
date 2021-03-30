@@ -41,7 +41,7 @@ func New(s *Setup) (Engine, error) {
 	case constants.DriverKubernetes:
 		// handle the Kubernetes runtime driver being provided
 		//
-		// // https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime?tab=doc#Setup.Kubernetes
+		// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime?tab=doc#Setup.Kubernetes
 		return s.Kubernetes()
 	default:
 		// handle an invalid runtime driver being provided

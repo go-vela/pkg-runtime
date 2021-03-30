@@ -25,9 +25,9 @@ func TestRuntime_New(t *testing.T) {
 		{
 			failure: false,
 			setup: &Setup{
-				Driver:    constants.DriverKubernetes,
-				Namespace: "docker",
-				Config:    "testdata/config",
+				Driver:     constants.DriverKubernetes,
+				Namespace:  "docker",
+				ConfigFile: "testdata/config",
 			},
 		},
 		{
