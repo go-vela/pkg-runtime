@@ -19,9 +19,15 @@ var Flags = []cli.Flag{
 	// Logging Flags
 
 	&cli.StringFlag{
-		EnvVars: []string{"RUNTIME_LOG_LEVEL", "VELA_LOG_LEVEL", "LOG_LEVEL"},
+		EnvVars: []string{"VELA_LOG_FORMAT", "RUNTIME_LOG_FORMAT"},
+		Name:    "runtime.log.format",
+		Usage:   "format of logs to output",
+		Value:   "json",
+	},
+	&cli.StringFlag{
+		EnvVars: []string{"VELA_LOG_LEVEL", "RUNTIME_LOG_LEVEL"},
 		Name:    "runtime.log.level",
-		Usage:   "set log level - options: (trace|debug|info|warn|error|fatal|panic)",
+		Usage:   "level of logs to output",
 		Value:   "info",
 	},
 
@@ -30,27 +36,28 @@ var Flags = []cli.Flag{
 	&cli.StringFlag{
 		EnvVars: []string{"VELA_RUNTIME_DRIVER", "RUNTIME_DRIVER"},
 		Name:    "runtime.driver",
-		Usage:   "name of runtime driver to use",
+		Usage:   "driver to be used for the runtime",
 		Value:   constants.DriverDocker,
 	},
 	&cli.StringFlag{
 		EnvVars: []string{"VELA_RUNTIME_CONFIG", "RUNTIME_CONFIG"},
 		Name:    "runtime.config",
-		Usage:   "path to runtime configuration file",
+		Usage:   "path to configuration file for the runtime",
 	},
 	&cli.StringFlag{
 		EnvVars: []string{"VELA_RUNTIME_NAMESPACE", "RUNTIME_NAMESPACE"},
 		Name:    "runtime.namespace",
-		Usage:   "name of namespace for runtime configuration (kubernetes runtime only)",
+		Usage:   "namespace to use for the runtime (only used by kubernetes)",
+	},
+	&cli.StringSliceFlag{
+		EnvVars: []string{"VELA_RUNTIME_PRIVILEGED_IMAGES", "RUNTIME_PRIVILEGED_IMAGES"},
+		Name:    "runtime.privileged-images",
+		Usage:   "list of images allowed to run in privileged mode for the runtime",
+		Value:   cli.NewStringSlice("target/vela-docker"),
 	},
 	&cli.StringSliceFlag{
 		EnvVars: []string{"VELA_RUNTIME_VOLUMES", "RUNTIME_VOLUMES"},
 		Name:    "runtime.volumes",
-		Usage:   "set of volumes to mount into the runtime",
-	},
-	&cli.StringSliceFlag{
-		EnvVars: []string{"VELA_ALLOWED_PRIVILEGED_IMAGES", "RUNTIME_VOLUMES"},
-		Name:    "runtime.allowed-privileged-images",
-		Usage:   "set of images that are allowed to run in privileged mode",
+		Usage:   "list of host volumes to mount for the runtime",
 	},
 }

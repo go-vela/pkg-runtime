@@ -6,7 +6,6 @@ package runtime
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/go-vela/pkg-runtime/runtime/docker"
 	"github.com/go-vela/pkg-runtime/runtime/kubernetes"
@@ -20,10 +19,17 @@ import (
 // creating a Vela engine capable of integrating
 // with a configured runtime environment.
 type Setup struct {
-	Driver           string
-	Config           string
-	Namespace        string
-	Volumes          []string
+	// Runtime Configuration
+
+	// specifies the driver to use for the runtime client
+	Driver string
+	// specifies the path to a configuration file to use for the runtime client
+	ConfigFile string
+	// specifies a list of host volumes to use for the runtime client
+	HostVolumes []string
+	// specifies the namespace to use for the runtime client (only used by kubernetes)
+	Namespace string
+	// specifies a list of privileged images to use for the runtime client
 	PrivilegedImages []string
 }
 
@@ -36,8 +42,8 @@ func (s *Setup) Docker() (Engine, error) {
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/docker?tab=doc#New
 	return docker.New(
+		docker.WithHostVolumes(s.HostVolumes),
 		docker.WithPrivilegedImages(s.PrivilegedImages),
-		docker.WithHostVolumes(s.Volumes),
 	)
 }
 
@@ -50,10 +56,10 @@ func (s *Setup) Kubernetes() (Engine, error) {
 	//
 	// https://pkg.go.dev/github.com/go-vela/pkg-runtime/runtime/kubernetes?tab=doc#New
 	return kubernetes.New(
-		kubernetes.WithConfigFile(s.Config),
+		kubernetes.WithConfigFile(s.ConfigFile),
+		kubernetes.WithHostVolumes(s.HostVolumes),
 		kubernetes.WithNamespace(s.Namespace),
 		kubernetes.WithPrivilegedImages(s.PrivilegedImages),
-		kubernetes.WithHostVolumes(s.Volumes),
 	)
 }
 
@@ -64,14 +70,17 @@ func (s *Setup) Validate() error {
 
 	// check if a runtime driver was provided
 	if len(s.Driver) == 0 {
-		return fmt.Errorf("no runtime driver provided in setup")
+		return fmt.Errorf("no runtime driver provided")
 	}
 
-	// check if the runtime driver provided is for Kubernetes
-	if strings.EqualFold(s.Driver, constants.DriverKubernetes) {
+	// process the secret driver being provided
+	switch s.Driver {
+	case constants.DriverDocker:
+		break
+	case constants.DriverKubernetes:
 		// check if a runtime namespace was provided
 		if len(s.Namespace) == 0 {
-			return fmt.Errorf("no runtime namespace provided in setup")
+			return fmt.Errorf("no runtime namespace provided")
 		}
 	}
 
