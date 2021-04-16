@@ -36,7 +36,11 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 	// send API call to capture the container
 	//
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
-	pod, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Get(context.Background(), c.Pod.ObjectMeta.Name, opts)
+	pod, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Get(
+		context.Background(),
+		c.Pod.ObjectMeta.Name,
+		opts,
+	)
 	if err != nil {
 		return err
 	}
@@ -88,7 +92,11 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 
 		logrus.Infof("removing pod %s", c.Pod.ObjectMeta.Name)
 		// send API call to delete the pod
-		err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Delete(context.Background(), c.Pod.ObjectMeta.Name, opts)
+		err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Delete(
+			context.Background(),
+			c.Pod.ObjectMeta.Name,
+			opts,
+		)
 		if err != nil {
 			return err
 		}
