@@ -36,7 +36,7 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 	// send API call to capture the container
 	//
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
-	pod, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Get(c.Pod.ObjectMeta.Name, opts)
+	pod, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Get(context.Background(), c.Pod.ObjectMeta.Name, opts)
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 		// create options for removing the pod
 		//
 		// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#DeleteOptions
-		opts := &metav1.DeleteOptions{
+		opts := metav1.DeleteOptions{
 			GracePeriodSeconds: &period,
 			// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#DeletionPropagation
 			PropagationPolicy: &policy,
@@ -88,7 +88,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 
 		logrus.Infof("removing pod %s", c.Pod.ObjectMeta.Name)
 		// send API call to delete the pod
-		err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Delete(c.Pod.ObjectMeta.Name, opts)
+		err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Delete(context.Background(), c.Pod.ObjectMeta.Name, opts)
 		if err != nil {
 			return err
 		}
@@ -156,7 +156,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		// send API call to create the pod
 		//
 		// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
-		_, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Create(c.Pod)
+		_, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Create(context.Background(), c.Pod, metav1.CreateOptions{})
 		if err != nil {
 			return err
 		}
@@ -197,10 +197,11 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	//
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
 	_, err = c.Kubernetes.CoreV1().Pods(c.config.Namespace).Patch(
+		context.Background(),
 		c.Pod.ObjectMeta.Name,
 		types.StrategicMergePatchType,
 		[]byte(fmt.Sprintf(imagePatch, ctn.ID, _image)),
-		"",
+		metav1.PatchOptions{},
 	)
 	if err != nil {
 		return err
@@ -309,7 +310,7 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		stream, err := c.Kubernetes.CoreV1().
 			Pods(c.config.Namespace).
 			GetLogs(c.Pod.ObjectMeta.Name, opts).
-			Stream()
+			Stream(context.Background())
 		if err != nil {
 			logrus.Errorf("%v", err)
 			return false, nil
@@ -380,7 +381,7 @@ func (c *client) WaitContainer(ctx context.Context, ctn *pipeline.Container) err
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
 	// ->
 	// https://pkg.go.dev/k8s.io/apimachinery/pkg/watch?tab=doc#Interface
-	watch, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Watch(opts)
+	watch, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Watch(context.Background(), opts)
 	if err != nil {
 		return err
 	}
