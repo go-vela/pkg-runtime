@@ -109,6 +109,37 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// allocate new host config with volume data
 	hostConf := hostConfig(b.ID, c.config.Volumes)
 
+	// -------------------- Start of TODO: --------------------
+	//
+	// Remove the below code once the mounting issue with Kaniko is
+	// resolved to allow mounting private cert bundles with Vela.
+	//
+	// This code is required due to a known bug in Kaniko:
+	//
+	// * https://github.com/go-vela/community/issues/253
+
+	// check if the pipeline container image contains
+	// the key words "kaniko" and "vela"
+	//
+	// this is a soft check for the Vela Kaniko plugin
+	if strings.Contains(ctn.Image, "kaniko") &&
+		strings.Contains(ctn.Image, "vela") {
+		// iterate through the list of host mounts provided
+		for i, mount := range hostConf.Mounts {
+			// check if the source path or target path
+			// for the mount contains "/etc/ssl/certs"
+			//
+			// this is a soft check for mounting private cert bundles
+			if strings.Contains(mount.Source, "/etc/ssl/certs") ||
+				strings.Contains(mount.Target, "/etc/ssl/certs") {
+				// remove the private cert bundle mount from the host config
+				hostConf.Mounts = append(hostConf.Mounts[:i], hostConf.Mounts[i+1:]...)
+			}
+		}
+	}
+	//
+	// -------------------- End of TODO: --------------------
+
 	// check if the container pull policy is on_start
 	if strings.EqualFold(ctn.Pull, constants.PullOnStart) {
 		// send API call to create the image
