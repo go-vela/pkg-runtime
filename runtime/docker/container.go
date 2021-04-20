@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/go-vela/types/constants"
-	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -173,7 +172,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		c.ContainerConfig,
 		hostConf,
 		c.NetworkConfig,
-		&v1.Platform{},
+		nil,
 		ctn.ID,
 	)
 	if err != nil {
