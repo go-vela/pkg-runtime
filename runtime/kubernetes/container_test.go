@@ -101,6 +101,7 @@ func TestKubernetes_RunContainer(t *testing.T) {
 		container *pipeline.Container
 		pipeline  *pipeline.Build
 		pod       *v1.Pod
+		volumes   []string
 	}{
 		{
 			failure:   false,
@@ -141,6 +142,38 @@ func TestKubernetes_RunContainer(t *testing.T) {
 				},
 			},
 		},
+		{
+			failure: false,
+			container: &pipeline.Container{
+				ID:          "step-github-octocat-1-echo",
+				Commands:    []string{"echo", "hello"},
+				Directory:   "/vela/src/github.com/octocat/helloworld",
+				Environment: map[string]string{"FOO": "bar"},
+				Entrypoint:  []string{"/bin/sh", "-c"},
+				Image:       "target/vela-kaniko:latest",
+				Name:        "echo",
+				Number:      2,
+				Pull:        "always",
+			},
+			pipeline: _steps,
+			pod: &v1.Pod{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Pod",
+				},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name:            "step-github-octocat-1-echo",
+							Image:           "target/vela-kaniko:latest",
+							WorkingDir:      "/vela/src/github.com/octocat/helloworld",
+							ImagePullPolicy: v1.PullAlways,
+						},
+					},
+				},
+			},
+			volumes: []string{"/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:rw"},
+		},
 	}
 
 	// run tests
@@ -148,6 +181,10 @@ func TestKubernetes_RunContainer(t *testing.T) {
 		_engine, err := NewMock(test.pod)
 		if err != nil {
 			t.Errorf("unable to create runtime engine: %v", err)
+		}
+
+		if len(test.volumes) > 0 {
+			_engine.config.Volumes = test.volumes
 		}
 
 		err = _engine.RunContainer(context.Background(), test.container, test.pipeline)

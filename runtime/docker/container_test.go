@@ -116,6 +116,7 @@ func TestDocker_RunContainer(t *testing.T) {
 		failure   bool
 		pipeline  *pipeline.Build
 		container *pipeline.Container
+		volumes   []string
 	}{
 		{
 			failure:   false,
@@ -153,6 +154,22 @@ func TestDocker_RunContainer(t *testing.T) {
 			},
 		},
 		{
+			failure:  false,
+			pipeline: _pipeline,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_echo",
+				Commands:    []string{"echo", "hello"},
+				Directory:   "/vela/src/github.com/octocat/helloworld",
+				Environment: map[string]string{"FOO": "bar"},
+				Entrypoint:  []string{"/bin/sh", "-c"},
+				Image:       "target/vela-kaniko:latest",
+				Name:        "echo",
+				Number:      2,
+				Pull:        "always",
+			},
+			volumes: []string{"/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:rw"},
+		},
+		{
 			failure:   true,
 			pipeline:  _pipeline,
 			container: new(pipeline.Container),
@@ -175,6 +192,10 @@ func TestDocker_RunContainer(t *testing.T) {
 	// run tests
 	for _, test := range tests {
 		_engine.HostConfig = new(container.HostConfig)
+
+		if len(test.volumes) > 0 {
+			_engine.config.Volumes = test.volumes
+		}
 
 		err = _engine.RunContainer(context.Background(), test.container, test.pipeline)
 

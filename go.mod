@@ -10,7 +10,6 @@ require (
 	github.com/go-vela/mock v0.7.5-0.20210416160452-fa8721fcc6a1
 	github.com/go-vela/types v0.7.4
 	github.com/joho/godotenv v1.3.0
-	github.com/opencontainers/image-spec v1.0.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli/v2 v2.3.0
 	google.golang.org/genproto v0.0.0-20201013134114-7f9ee70cb474 // indirect
