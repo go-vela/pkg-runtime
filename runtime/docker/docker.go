@@ -5,8 +5,6 @@
 package docker
 
 import (
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
 	docker "github.com/docker/docker/client"
 
 	mock "github.com/go-vela/mock/docker"
@@ -40,12 +38,6 @@ type client struct {
 	config *config
 	// https://godoc.org/github.com/docker/docker/client#CommonAPIClient
 	Docker docker.CommonAPIClient
-	// https://godoc.org/github.com/docker/docker/api/types/container#Config
-	ContainerConfig *container.Config
-	// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
-	HostConfig *container.HostConfig
-	// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
-	NetworkConfig *network.NetworkingConfig
 }
 
 // New returns an Engine implementation that
@@ -58,9 +50,6 @@ func New(opts ...ClientOpt) (*client, error) {
 
 	// create new fields
 	c.config = new(config)
-	c.ContainerConfig = new(container.Config)
-	c.HostConfig = new(container.HostConfig)
-	c.NetworkConfig = new(network.NetworkingConfig)
 
 	// apply all provided configuration options
 	for _, opt := range opts {
