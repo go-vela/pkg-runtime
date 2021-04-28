@@ -5,8 +5,6 @@
 package docker
 
 import (
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
 	docker "github.com/docker/docker/client"
 
 	mock "github.com/go-vela/mock/docker"
@@ -18,13 +16,6 @@ const version = "1.40"
 type client struct {
 	// https://godoc.org/github.com/docker/docker/client#CommonAPIClient
 	docker docker.CommonAPIClient
-
-	// https://godoc.org/github.com/docker/docker/api/types/container#Config
-	ctnConf *container.Config
-	// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
-	hostConf *container.HostConfig
-	// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
-	netConf *network.NetworkingConfig
 
 	// set of host volumes to mount into every container
 	volumes []string
@@ -55,9 +46,6 @@ func New(_volumes, _privilegedImages []string) (*client, error) {
 
 	return &client{
 		docker:           _docker,
-		ctnConf:          new(container.Config),
-		hostConf:         new(container.HostConfig),
-		netConf:          new(network.NetworkingConfig),
 		volumes:          _volumes,
 		privilegedImages: _privilegedImages,
 	}, nil

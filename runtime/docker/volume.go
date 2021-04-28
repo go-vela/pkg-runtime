@@ -24,9 +24,6 @@ import (
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("creating volume for pipeline %s", b.ID)
 
-	// create host configuration
-	c.hostConf = hostConfig(b.ID, c.volumes)
-
 	// create options for creating volume
 	//
 	// https://godoc.org/github.com/docker/docker/api/types/volume#VolumeCreateBody
