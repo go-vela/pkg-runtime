@@ -87,15 +87,6 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 		return err
 	}
 
-	// empty the container config
-	c.ContainerConfig = nil
-
-	// empty the host config
-	c.HostConfig = nil
-
-	// empty the network config
-	c.NetworkConfig = nil
-
 	return nil
 }
 
@@ -105,8 +96,12 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
 
+	// allocate new container config from pipeline container
+	containerConf := ctnConfig(ctn)
 	// allocate new host config with volume data
 	hostConf := hostConfig(b.ID, c.config.Volumes)
+	// allocate new network config with container name
+	networkConf := netConfig(b.ID, ctn.Name)
 
 	// -------------------- Start of TODO: --------------------
 	//
@@ -148,10 +143,6 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		}
 	}
 
-	// create container configuration
-	c.ContainerConfig = ctnConfig(ctn)
-	c.NetworkConfig = netConfig(b.ID, ctn.Name)
-
 	// check if the image is allowed to run privileged
 	for _, pattern := range c.config.Images {
 		privileged, err := image.IsPrivilegedImage(ctn.Image, pattern)
@@ -169,9 +160,9 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// https://godoc.org/github.com/docker/docker/client#Client.ContainerCreate
 	_, err := c.Docker.ContainerCreate(
 		ctx,
-		c.ContainerConfig,
+		containerConf,
 		hostConf,
-		c.NetworkConfig,
+		networkConf,
 		nil,
 		ctn.ID,
 	)

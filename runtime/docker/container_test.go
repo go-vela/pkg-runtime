@@ -8,7 +8,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/docker/docker/api/types/container"
 	"github.com/go-vela/types/pipeline"
 )
 
@@ -191,8 +190,6 @@ func TestDocker_RunContainer(t *testing.T) {
 
 	// run tests
 	for _, test := range tests {
-		_engine.HostConfig = new(container.HostConfig)
-
 		if len(test.volumes) > 0 {
 			_engine.config.Volumes = test.volumes
 		}
