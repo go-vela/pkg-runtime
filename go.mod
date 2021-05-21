@@ -14,7 +14,7 @@ require (
 	github.com/urfave/cli/v2 v2.3.0
 	google.golang.org/genproto v0.0.0-20201013134114-7f9ee70cb474 // indirect
 	gotest.tools/v3 v3.0.3
-	k8s.io/api v0.21.0
-	k8s.io/apimachinery v0.21.0
-	k8s.io/client-go v0.21.0
+	k8s.io/api v0.21.1
+	k8s.io/apimachinery v0.21.1
+	k8s.io/client-go v0.21.1
 )
