@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker v20.10.6+incompatible
-	github.com/gin-gonic/gin v1.7.1
+	github.com/gin-gonic/gin v1.7.2
 	github.com/go-vela/compiler v0.7.4
 	github.com/go-vela/mock v0.7.5-0.20210416160452-fa8721fcc6a1
 	github.com/go-vela/types v0.7.4
