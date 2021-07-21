@@ -103,7 +103,7 @@ func hostConfig(id string, ulimits pipeline.UlimitSlice, volumes []string) *cont
 	}
 
 	resources := container.Resources{}
-	// check if ulimits were provided
+	// iterate through all ulimits provided
 
 	for _, v := range ulimits {
 		resources.Ulimits = append(resources.Ulimits, &units.Ulimit{
@@ -144,7 +144,7 @@ func hostConfig(id string, ulimits pipeline.UlimitSlice, volumes []string) *cont
 		Privileged: false,
 		// https://godoc.org/github.com/docker/docker/api/types/mount#Mount
 		Mounts: mounts,
-
+		// https://pkg.go.dev/github.com/docker/docker/api/types/container#Resources.Ulimits
 		Resources: resources,
 	}
 }
