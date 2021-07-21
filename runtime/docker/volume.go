@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/volume"
+	"github.com/docker/go-units"
 
 	vol "github.com/go-vela/pkg-runtime/internal/volume"
 	"github.com/go-vela/types/constants"
@@ -87,9 +88,9 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	return nil
 }
 
-// hostConfig is a helper function to generate
-// the host config with volume specification for a container.
-func hostConfig(id string, volumes []string) *container.HostConfig {
+// hostConfig is a helper function to generate the host config
+// with Ulimit and volume specifications for a container.
+func hostConfig(id string, ulimits pipeline.UlimitSlice, volumes []string) *container.HostConfig {
 	logrus.Tracef("creating mount for default volume %s", id)
 
 	// create default mount for pipeline volume
@@ -99,6 +100,17 @@ func hostConfig(id string, volumes []string) *container.HostConfig {
 			Source: id,
 			Target: constants.WorkspaceMount,
 		},
+	}
+
+	resources := container.Resources{}
+	// iterate through all ulimits provided
+
+	for _, v := range ulimits {
+		resources.Ulimits = append(resources.Ulimits, &units.Ulimit{
+			Name: v.Name,
+			Hard: v.Hard,
+			Soft: v.Soft,
+		})
 	}
 
 	// check if other volumes were provided
@@ -132,5 +144,7 @@ func hostConfig(id string, volumes []string) *container.HostConfig {
 		Privileged: false,
 		// https://godoc.org/github.com/docker/docker/api/types/mount#Mount
 		Mounts: mounts,
+		// https://pkg.go.dev/github.com/docker/docker/api/types/container#Resources.Ulimits
+		Resources: resources,
 	}
 }
