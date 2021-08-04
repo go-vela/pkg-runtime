@@ -4,10 +4,10 @@ go 1.15
 
 require (
 	github.com/docker/distribution v2.7.1+incompatible
-	github.com/docker/docker v20.10.7+incompatible
+	github.com/docker/docker v20.10.8+incompatible
 	github.com/docker/go-units v0.4.0
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/gin-gonic/gin v1.7.2
+	github.com/gin-gonic/gin v1.7.3
 	github.com/go-vela/compiler v0.8.1
 	github.com/go-vela/mock v0.8.1
 	github.com/go-vela/types v0.8.2
