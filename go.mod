@@ -20,9 +20,8 @@ require (
 	github.com/onsi/gomega v1.10.4 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli/v2 v2.3.0
-	google.golang.org/genproto v0.0.0-20201013134114-7f9ee70cb474 // indirect
 	gotest.tools/v3 v3.0.3
-	k8s.io/api v0.21.3
-	k8s.io/apimachinery v0.21.3
+	k8s.io/api v0.22.0
+	k8s.io/apimachinery v0.22.0
 	k8s.io/client-go v0.21.3
 )
