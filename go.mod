@@ -8,10 +8,9 @@ require (
 	github.com/docker/go-units v0.4.0
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/gin-gonic/gin v1.7.3
-	github.com/go-vela/compiler v0.8.1
-	github.com/go-vela/mock v0.8.1
-	github.com/go-vela/types v0.8.2
-	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/go-vela/compiler v0.9.0-rc2
+	github.com/go-vela/mock v0.9.0-rc2
+	github.com/go-vela/types v0.9.0-rc2
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/hashicorp/go-hclog v0.10.0 // indirect
