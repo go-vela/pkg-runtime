@@ -186,6 +186,20 @@ func TestDocker_RunContainer(t *testing.T) {
 				Pull:        "always",
 			},
 		},
+		{
+			failure:  true,
+			pipeline: _pipeline,
+			container: &pipeline.Container{
+				ID:          "step_github_octocat_1_ignorenotfound",
+				Directory:   "/vela/src/github.com/octocat/helloworld",
+				Environment: map[string]string{"FOO": "bar"},
+				Image:       "target/vela-git:v0.4.0",
+				Name:        "ignorenotfound",
+				Number:      2,
+				Pull:        "always",
+				User:        "foo",
+			},
+		},
 	}
 
 	// run tests
