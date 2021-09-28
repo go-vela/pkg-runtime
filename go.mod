@@ -1,7 +1,5 @@
 module github.com/go-vela/pkg-runtime
 
-replace github.com/go-vela/types => github.com/JordanSussman/types v0.1.2-0.20210924200358-25edba135fd2
-
 go 1.16
 
 require (
@@ -10,9 +8,10 @@ require (
 	github.com/docker/go-units v0.4.0
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/gin-gonic/gin v1.7.4
-	github.com/go-vela/compiler v0.9.0
+	github.com/go-vela/compiler v0.9.1-0.20210928181726-3fbad503740a
 	github.com/go-vela/mock v0.9.0
-	github.com/go-vela/types v0.9.0
+	github.com/go-vela/types v0.9.1-0.20210927152526-522194f7764b
+	github.com/google/go-github/v38 v38.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/hashicorp/go-hclog v0.10.0 // indirect
