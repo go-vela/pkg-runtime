@@ -11,7 +11,6 @@ require (
 	github.com/go-vela/compiler v0.9.1-0.20210928181726-3fbad503740a
 	github.com/go-vela/mock v0.9.0
 	github.com/go-vela/types v0.9.1-0.20210927152526-522194f7764b
-	github.com/google/go-github/v38 v38.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/hashicorp/go-hclog v0.10.0 // indirect
