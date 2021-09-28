@@ -5,9 +5,11 @@
 package kubernetes
 
 import (
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -52,13 +54,25 @@ func New(opts ...ClientOpt) (*client, error) {
 
 	// use the current context in kubeconfig
 	//
-	// when kube config is provided use out of cluster config option else
-	// function will build and return an InClusterConfig
-	//
-	// https://pkg.go.dev/k8s.io/client-go/tools/clientcmd?tab=doc#BuildConfigFromFlags
-	config, err := clientcmd.BuildConfigFromFlags("", c.config.File)
-	if err != nil {
-		return nil, err
+	// when no kube config is provided create InClusterConfig
+	// else use out of cluster config option
+	var (
+		config *rest.Config
+		err    error
+	)
+	if c.config.File == "" {
+		// https://pkg.go.dev/k8s.io/client-go/rest?tab=doc#InClusterConfig
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			logrus.Error("VELA_RUNTIME_CONFIG not defined and failed to create kubernetes InClusterConfig!")
+			return nil, err
+		}
+	} else {
+		// https://pkg.go.dev/k8s.io/client-go/tools/clientcmd?tab=doc#BuildConfigFromFlags
+		config, err = clientcmd.BuildConfigFromFlags("", c.config.File)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// creates Kubernetes client from configuration
