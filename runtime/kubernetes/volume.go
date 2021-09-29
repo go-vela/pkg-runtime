@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	v1 "k8s.io/api/core/v1"
 
@@ -86,6 +87,8 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 		}
 	}
 
+	// TODO: extend c.config.Volumes to include container-specific volumes (container.Volumes)
+
 	return nil
 }
 
@@ -123,4 +126,45 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	c.Pod.Spec.Volumes = []v1.Volume{}
 
 	return nil
+}
+
+// setupVolumeMounts generates the VolumeMounts for a given container.
+func (c *client) setupVolumeMounts(ctx context.Context, ctn *pipeline.Container) (volumeMounts []v1.VolumeMount, err error) {
+	logrus.Tracef("setting up VolumeMounts for container %s", ctn.ID)
+
+	// add workspace mount and any global host mounts (VELA_RUNTIME_VOLUMES)
+	volumeMounts = append(volumeMounts, c.commonVolumeMounts...)
+
+	// -------------------- Start of TODO: --------------------
+	//
+	// Remove the below code once the mounting issue with Kaniko is
+	// resolved to allow mounting private cert bundles with Vela.
+	//
+	// This code is required due to a known bug in Kaniko:
+	//
+	// * https://github.com/go-vela/community/issues/253
+
+	// check if the pipeline container image contains
+	// the key words "kaniko" and "vela"
+	//
+	// this is a soft check for the Vela Kaniko plugin
+	if strings.Contains(ctn.Image, "kaniko") &&
+		strings.Contains(ctn.Image, "vela") {
+		// iterate through the list of host mounts provided
+		for i, mount := range volumeMounts {
+			// check if the path for the mount contains "/etc/ssl/certs"
+			//
+			// this is a soft check for mounting private cert bundles
+			if strings.Contains(mount.MountPath, "/etc/ssl/certs") {
+				// remove the private cert bundle mount from the host config
+				volumeMounts = append(volumeMounts[:i], volumeMounts[i+1:]...)
+			}
+		}
+	}
+	//
+	// -------------------- End of TODO: --------------------
+
+	// TODO: extend volumeMounts based on ctn.Volumes
+
+	return
 }

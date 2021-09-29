@@ -118,43 +118,6 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	//
 	// check if the pod is already created
 	if len(c.Pod.ObjectMeta.Name) == 0 {
-		// TODO: investigate way to make this cleaner
-		//
-		// iterate through each container in the pod
-		for _, container := range c.Pod.Spec.Containers {
-			// add workspace mount and any global host mounts (VELA_RUNTIME_VOLUMES)
-			container.VolumeMounts = c.commonVolumeMounts[:]
-
-			// -------------------- Start of TODO: --------------------
-			//
-			// Remove the below code once the mounting issue with Kaniko is
-			// resolved to allow mounting private cert bundles with Vela.
-			//
-			// This code is required due to a known bug in Kaniko:
-			//
-			// * https://github.com/go-vela/community/issues/253
-
-			// check if the pipeline container image contains
-			// the key words "kaniko" and "vela"
-			//
-			// this is a soft check for the Vela Kaniko plugin
-			if strings.Contains(ctn.Image, "kaniko") &&
-				strings.Contains(ctn.Image, "vela") {
-				// iterate through the list of host mounts provided
-				for i, mount := range container.VolumeMounts {
-					// check if the path for the mount contains "/etc/ssl/certs"
-					//
-					// this is a soft check for mounting private cert bundles
-					if strings.Contains(mount.MountPath, "/etc/ssl/certs") {
-						// remove the private cert bundle mount from the host config
-						container.VolumeMounts = append(container.VolumeMounts[:i], container.VolumeMounts[i+1:]...)
-					}
-				}
-			}
-			//
-			// -------------------- End of TODO: --------------------
-		}
-
 		// create the object metadata for the pod
 		//
 		// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#ObjectMeta
@@ -254,6 +217,13 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		WorkingDir:      ctn.Directory,
 		ImagePullPolicy: v1.PullAlways,
 	}
+
+	// fill in the VolumeMounts including workspaceMount
+	volumeMounts, err := c.setupVolumeMounts(ctx, ctn)
+	if err != nil {
+		return err
+	}
+	container.VolumeMounts = volumeMounts
 
 	// check if the image is allowed to run privileged
 	for _, pattern := range c.config.Images {
