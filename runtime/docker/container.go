@@ -345,5 +345,11 @@ func ctnConfig(ctn *pipeline.Container) *container.Config {
 		config.Cmd = ctn.Commands
 	}
 
+	// check if the user is present
+	if len(ctn.User) > 0 {
+		// add user to container config
+		config.User = ctn.User
+	}
+
 	return config
 }
