@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/go-vela/pkg-runtime/internal/image"
-	vol "github.com/go-vela/pkg-runtime/internal/volume"
 	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
@@ -123,28 +122,8 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		//
 		// iterate through each container in the pod
 		for _, container := range c.Pod.Spec.Containers {
-			// update the container with the volume to mount
-			container.VolumeMounts = []v1.VolumeMount{
-				{
-					Name:      b.ID,
-					MountPath: constants.WorkspaceMount,
-				},
-			}
-
-			// check if other volumes were provided
-			if len(c.config.Volumes) > 0 {
-				// iterate through all volumes provided
-				for k, v := range c.config.Volumes {
-					// parse the volume provided
-					_volume := vol.Parse(v)
-
-					// add the volume to the container
-					container.VolumeMounts = append(container.VolumeMounts, v1.VolumeMount{
-						Name:      fmt.Sprintf("%s_%d", b.ID, k),
-						MountPath: _volume.Destination,
-					})
-				}
-			}
+			// add workspace mount and any global host mounts (VELA_RUNTIME_VOLUMES)
+			container.VolumeMounts = c.commonVolumeMounts[:]
 
 			// -------------------- Start of TODO: --------------------
 			//

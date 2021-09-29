@@ -12,6 +12,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 
 	vol "github.com/go-vela/pkg-runtime/internal/volume"
+	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -21,7 +22,7 @@ import (
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("creating volume for pipeline %s", b.ID)
 
-	// create the volume for the pod
+	// create the workspace volume for the pod
 	//
 	// This is done due to the nature of how volumes works inside
 	// the pod. Each container inside the pod can access and use
@@ -36,33 +37,51 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	//   * https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#Volume
-	volume := v1.Volume{
+	workspaceVolume := v1.Volume{
 		Name: b.ID,
 		VolumeSource: v1.VolumeSource{
 			EmptyDir: &v1.EmptyDirVolumeSource{},
 		},
 	}
 
+	// create the workspace volumeMount for the pod
+	//
+	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#VolumeMount
+	workspaceVolumeMount := v1.VolumeMount{
+		Name:      b.ID,
+		MountPath: constants.WorkspaceMount,
+	}
+
 	// add the volume definition to the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, volume)
+	c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, workspaceVolume)
 
-	// check if other volumes were provided
+	// save the volumeMount to add to each of the containers in the pod spec later
+	c.commonVolumeMounts = append(c.commonVolumeMounts, workspaceVolumeMount)
+
+	// check if global host volumes were provided (VELA_RUNTIME_VOLUMES)
 	if len(c.config.Volumes) > 0 {
 		// iterate through all volumes provided
 		for k, v := range c.config.Volumes {
 			// parse the volume provided
 			_volume := vol.Parse(v)
+			_volumeName := fmt.Sprintf("%s_%d", b.ID, k)
 
 			// add the volume to the set of pod volumes
 			c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, v1.Volume{
-				Name: fmt.Sprintf("%s_%d", b.ID, k),
+				Name: _volumeName,
 				VolumeSource: v1.VolumeSource{
 					HostPath: &v1.HostPathVolumeSource{
 						Path: _volume.Source,
 					},
 				},
+			})
+
+			// save the volumeMounts for later addition to each container's mounts
+			c.commonVolumeMounts = append(c.commonVolumeMounts, v1.VolumeMount{
+				Name:      _volumeName,
+				MountPath: _volume.Destination,
 			})
 		}
 	}
