@@ -30,6 +30,15 @@ func TestKubernetes_New(t *testing.T) {
 			namespace: "test",
 			path:      "testdata/config_empty",
 		},
+		// An empty path implies that we are running in kubernetes,
+		// so we should use InClusterConfig. Tests, however, do not
+		// run in kubernetes, so we would need a way to mock the
+		// return value of rest.InClusterConfig(), but how?
+		//{
+		//	failure:   false,
+		//	namespace: "test",
+		//	path:      "",
+		//},
 	}
 
 	// run tests
