@@ -150,28 +150,6 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	// set the pod container image to the parsed step image
 	c.Pod.Spec.Containers[ctn.Number-2].Image = _image
 
-	// handle the container pull policy
-	switch ctn.Pull {
-	case constants.PullAlways:
-		// set the pod container pull policy to always
-		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
-	case constants.PullNever:
-		// set the pod container pull policy to never
-		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullNever
-	case constants.PullOnStart:
-		// set the pod container pull policy to always
-		//
-		// if the pipeline container image should be pulled on start, than
-		// we force Kubernetes to pull the image on start with the always
-		// pull policy for the pod container
-		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
-	case constants.PullNotPresent:
-		fallthrough
-	default:
-		// default the pod container pull policy to if not present
-		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullIfNotPresent
-	}
-
 	// send API call to patch the pod with the new container image
 	//
 	// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
@@ -209,13 +187,34 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		// the containers with the proper image.
 		//
 		// https://hub.docker.com/r/kubernetes/pause
-		Image:           image.Parse("kubernetes/pause:latest"),
-		Env:             []v1.EnvVar{},
-		Stdin:           false,
-		StdinOnce:       false,
-		TTY:             false,
-		WorkingDir:      ctn.Directory,
-		ImagePullPolicy: v1.PullAlways,
+		Image:      image.Parse("kubernetes/pause:latest"),
+		Env:        []v1.EnvVar{},
+		Stdin:      false,
+		StdinOnce:  false,
+		TTY:        false,
+		WorkingDir: ctn.Directory,
+	}
+
+	// handle the container pull policy (This cannot be updated like the image can)
+	switch ctn.Pull {
+	case constants.PullAlways:
+		// set the pod container pull policy to always
+		container.ImagePullPolicy = v1.PullAlways
+	case constants.PullNever:
+		// set the pod container pull policy to never
+		container.ImagePullPolicy = v1.PullNever
+	case constants.PullOnStart:
+		// set the pod container pull policy to always
+		//
+		// if the pipeline container image should be pulled on start, than
+		// we force Kubernetes to pull the image on start with the always
+		// pull policy for the pod container
+		container.ImagePullPolicy = v1.PullAlways
+	case constants.PullNotPresent:
+		fallthrough
+	default:
+		// default the pod container pull policy to if not present
+		container.ImagePullPolicy = v1.PullIfNotPresent
 	}
 
 	// fill in the VolumeMounts including workspaceMount
