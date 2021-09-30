@@ -110,7 +110,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 
 // RunContainer creates and starts the pipeline container.
 //
-// nolint: funlen,lll // ignore function length and long line length
+// nolint: lll // ignore long line length
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
 

@@ -129,7 +129,10 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 }
 
 // setupVolumeMounts generates the VolumeMounts for a given container.
-func (c *client) setupVolumeMounts(ctx context.Context, ctn *pipeline.Container) (volumeMounts []v1.VolumeMount, err error) {
+func (c *client) setupVolumeMounts(ctx context.Context, ctn *pipeline.Container) (
+	volumeMounts []v1.VolumeMount,
+	err error,
+) {
 	logrus.Tracef("setting up VolumeMounts for container %s", ctn.ID)
 
 	// add workspace mount and any global host mounts (VELA_RUNTIME_VOLUMES)
@@ -166,5 +169,5 @@ func (c *client) setupVolumeMounts(ctx context.Context, ctn *pipeline.Container)
 
 	// TODO: extend volumeMounts based on ctn.Volumes
 
-	return
+	return volumeMounts, nil
 }
