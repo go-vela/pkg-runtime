@@ -30,6 +30,8 @@ type client struct {
 	Kubernetes kubernetes.Interface
 	// https://pkg.go.dev/k8s.io/api/core/v1#Pod
 	Pod *v1.Pod
+	// commonVolumeMounts includes workspace mount and any global host mounts (VELA_RUNTIME_VOLUMES)
+	commonVolumeMounts []v1.VolumeMount
 }
 
 // New returns an Engine implementation that

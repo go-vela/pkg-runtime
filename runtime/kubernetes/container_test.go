@@ -95,6 +95,7 @@ func TestKubernetes_RemoveContainer(t *testing.T) {
 }
 
 func TestKubernetes_RunContainer(t *testing.T) {
+	// TODO: include VolumeMounts?
 	// setup tests
 	tests := []struct {
 		failure   bool
@@ -253,6 +254,8 @@ func TestKubernetes_SetupContainer(t *testing.T) {
 	for _, test := range tests {
 		err = _engine.SetupContainer(context.Background(), test.container)
 
+		// this does not test the resulting pod spec (ie no tests for ImagePullPolicy, VolumeMounts)
+
 		if test.failure {
 			if err == nil {
 				t.Errorf("SetupContainer should have returned err")
@@ -277,6 +280,7 @@ func TestKubernetes_TailContainer(t *testing.T) {
 	// always returned when calling the GetLogs function.
 	//
 	// https://github.com/kubernetes/kubernetes/issues/84203
+	// fixed in k8s.io/client-go v0.19.0; we already have v0.22.2
 }
 
 func TestKubernetes_WaitContainer(t *testing.T) {

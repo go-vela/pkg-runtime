@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/go-vela/pkg-runtime/internal/image"
-	vol "github.com/go-vela/pkg-runtime/internal/volume"
 	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
@@ -111,7 +110,7 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 
 // RunContainer creates and starts the pipeline container.
 //
-// nolint: funlen,lll // ignore function length and long line length
+// nolint: lll // ignore long line length
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
 
@@ -119,63 +118,6 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	//
 	// check if the pod is already created
 	if len(c.Pod.ObjectMeta.Name) == 0 {
-		// TODO: investigate way to make this cleaner
-		//
-		// iterate through each container in the pod
-		for _, container := range c.Pod.Spec.Containers {
-			// update the container with the volume to mount
-			container.VolumeMounts = []v1.VolumeMount{
-				{
-					Name:      b.ID,
-					MountPath: constants.WorkspaceMount,
-				},
-			}
-
-			// check if other volumes were provided
-			if len(c.config.Volumes) > 0 {
-				// iterate through all volumes provided
-				for k, v := range c.config.Volumes {
-					// parse the volume provided
-					_volume := vol.Parse(v)
-
-					// add the volume to the container
-					container.VolumeMounts = append(container.VolumeMounts, v1.VolumeMount{
-						Name:      fmt.Sprintf("%s_%d", b.ID, k),
-						MountPath: _volume.Destination,
-					})
-				}
-			}
-
-			// -------------------- Start of TODO: --------------------
-			//
-			// Remove the below code once the mounting issue with Kaniko is
-			// resolved to allow mounting private cert bundles with Vela.
-			//
-			// This code is required due to a known bug in Kaniko:
-			//
-			// * https://github.com/go-vela/community/issues/253
-
-			// check if the pipeline container image contains
-			// the key words "kaniko" and "vela"
-			//
-			// this is a soft check for the Vela Kaniko plugin
-			if strings.Contains(ctn.Image, "kaniko") &&
-				strings.Contains(ctn.Image, "vela") {
-				// iterate through the list of host mounts provided
-				for i, mount := range container.VolumeMounts {
-					// check if the path for the mount contains "/etc/ssl/certs"
-					//
-					// this is a soft check for mounting private cert bundles
-					if strings.Contains(mount.MountPath, "/etc/ssl/certs") {
-						// remove the private cert bundle mount from the host config
-						container.VolumeMounts = append(container.VolumeMounts[:i], container.VolumeMounts[i+1:]...)
-					}
-				}
-			}
-			//
-			// -------------------- End of TODO: --------------------
-		}
-
 		// create the object metadata for the pod
 		//
 		// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#ObjectMeta
@@ -207,28 +149,6 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 
 	// set the pod container image to the parsed step image
 	c.Pod.Spec.Containers[ctn.Number-2].Image = _image
-
-	// handle the container pull policy
-	switch ctn.Pull {
-	case constants.PullAlways:
-		// set the pod container pull policy to always
-		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
-	case constants.PullNever:
-		// set the pod container pull policy to never
-		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullNever
-	case constants.PullOnStart:
-		// set the pod container pull policy to always
-		//
-		// if the pipeline container image should be pulled on start, than
-		// we force Kubernetes to pull the image on start with the always
-		// pull policy for the pod container
-		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullAlways
-	case constants.PullNotPresent:
-		fallthrough
-	default:
-		// default the pod container pull policy to if not present
-		c.Pod.Spec.Containers[ctn.Number-2].ImagePullPolicy = v1.PullIfNotPresent
-	}
 
 	// send API call to patch the pod with the new container image
 	//
@@ -267,14 +187,42 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		// the containers with the proper image.
 		//
 		// https://hub.docker.com/r/kubernetes/pause
-		Image:           image.Parse("kubernetes/pause:latest"),
-		Env:             []v1.EnvVar{},
-		Stdin:           false,
-		StdinOnce:       false,
-		TTY:             false,
-		WorkingDir:      ctn.Directory,
-		ImagePullPolicy: v1.PullAlways,
+		Image:      image.Parse("kubernetes/pause:latest"),
+		Env:        []v1.EnvVar{},
+		Stdin:      false,
+		StdinOnce:  false,
+		TTY:        false,
+		WorkingDir: ctn.Directory,
 	}
+
+	// handle the container pull policy (This cannot be updated like the image can)
+	switch ctn.Pull {
+	case constants.PullAlways:
+		// set the pod container pull policy to always
+		container.ImagePullPolicy = v1.PullAlways
+	case constants.PullNever:
+		// set the pod container pull policy to never
+		container.ImagePullPolicy = v1.PullNever
+	case constants.PullOnStart:
+		// set the pod container pull policy to always
+		//
+		// if the pipeline container image should be pulled on start, than
+		// we force Kubernetes to pull the image on start with the always
+		// pull policy for the pod container
+		container.ImagePullPolicy = v1.PullAlways
+	case constants.PullNotPresent:
+		fallthrough
+	default:
+		// default the pod container pull policy to if not present
+		container.ImagePullPolicy = v1.PullIfNotPresent
+	}
+
+	// fill in the VolumeMounts including workspaceMount
+	volumeMounts, err := c.setupVolumeMounts(ctx, ctn)
+	if err != nil {
+		return err
+	}
+	container.VolumeMounts = volumeMounts
 
 	// check if the image is allowed to run privileged
 	for _, pattern := range c.config.Images {
