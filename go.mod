@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/docker/distribution v2.7.1+incompatible
-	github.com/docker/docker v20.10.8+incompatible
+	github.com/docker/docker v20.10.9+incompatible
 	github.com/docker/go-units v0.4.0
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/gin-gonic/gin v1.7.4
