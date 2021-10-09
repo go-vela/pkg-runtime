@@ -6,9 +6,10 @@ package kubernetes
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 
 	"github.com/go-vela/types/pipeline"
+
+	"github.com/sirupsen/logrus"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -6,9 +6,10 @@ package docker
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 
 	"github.com/go-vela/types/pipeline"
+
+	"github.com/sirupsen/logrus"
 )
 
 // SetupBuild prepares the pipeline build.
