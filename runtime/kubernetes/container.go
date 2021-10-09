@@ -170,6 +170,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 			Privileged: &privileged,
 		}
 	}
+	
+	// TODO: add SecurityContext options (runAsUser, runAsNonRoot, sysctls)
 
 	// check if the environment is provided
 	if len(ctn.Environment) > 0 {
