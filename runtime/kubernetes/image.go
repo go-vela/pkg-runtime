@@ -33,6 +33,7 @@ const imagePatch = `
 func (c *client) CreateImage(ctx context.Context, ctn *pipeline.Container) error {
 	logrus.Tracef("creating image for container %s", ctn.ID)
 
+	// TODO: maybe check to see if the image exists here?
 	return nil
 }
 
@@ -61,6 +62,10 @@ func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]b
 		return output, err
 	}
 
-	// add new line to end of bytes
-	return append(output, append(image, "\n"...)...), nil
+	// currentImage is always kubernetes/pause, which is not very helpful.
+	output = append(output, image...)
+	output = append(output, "\n# Planned image = "...)
+	output = append(output, ctn.Image...)
+	output = append(output, "\n"...)
+	return output, nil
 }

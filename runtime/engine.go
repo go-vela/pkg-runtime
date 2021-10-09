@@ -21,6 +21,13 @@ type Engine interface {
 	// the configured runtime driver.
 	Driver() string
 
+	// Build Engine Interface Functions
+
+	// PreAssembleBuild is called before running SetupContainer for any containers.
+	PreAssembleBuild(context.Context, *pipeline.Build) error
+	// PostAssembleBuild is called after running SetupContainer for all containers.
+	PostAssembleBuild(context.Context, *pipeline.Build) error
+
 	// Container Engine Interface Functions
 
 	// InspectContainer defines a function that inspects
