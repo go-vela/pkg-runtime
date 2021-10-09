@@ -23,10 +23,15 @@ type Engine interface {
 
 	// Build Engine Interface Functions
 
-	// SetupBuild prepares the pipeline build.
+	// SetupBuild defines a function that
+	// prepares the pipeline build.
 	SetupBuild(context.Context, *pipeline.Build) error
-	// AssembleBuild finalizes pipeline build setup.
+	// AssembleBuild defines a function that
+	// finalizes pipeline build setup.
 	AssembleBuild(context.Context, *pipeline.Build) error
+	// RemoveBuild defines a function that deletes
+	// (kill, remove) the pipeline build metadata.
+	RemoveBuild(context.Context, *pipeline.Build) error
 
 	// Container Engine Interface Functions
 

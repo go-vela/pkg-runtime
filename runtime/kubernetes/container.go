@@ -64,46 +64,9 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 }
 
 // RemoveContainer deletes (kill, remove) the pipeline container.
+// This is a no-op for kubernetes. RemoveBuild handles deleting the pod.
 func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) error {
 	logrus.Tracef("removing container %s", ctn.ID)
-
-	// TODO: investigate way to move this logic
-	//
-	// check if the pod is already created
-	if len(c.Pod.ObjectMeta.Name) > 0 {
-		// create variables for the delete options
-		//
-		// This is necessary because the delete options
-		// expect all values to be passed by reference.
-		var (
-			period = int64(0)
-			policy = metav1.DeletePropagationForeground
-		)
-
-		// create options for removing the pod
-		//
-		// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#DeleteOptions
-		opts := metav1.DeleteOptions{
-			GracePeriodSeconds: &period,
-			// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#DeletionPropagation
-			PropagationPolicy: &policy,
-		}
-
-		logrus.Infof("removing pod %s", c.Pod.ObjectMeta.Name)
-		// send API call to delete the pod
-		err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Delete(
-			context.Background(),
-			c.Pod.ObjectMeta.Name,
-			opts,
-		)
-		if err != nil {
-			return err
-		}
-
-		c.Pod = &v1.Pod{
-			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
-		}
-	}
 
 	return nil
 }
