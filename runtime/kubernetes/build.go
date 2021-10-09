@@ -9,6 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/go-vela/types/pipeline"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // SetupBuild prepares the pod metadata for the pipeline build.
@@ -24,7 +27,7 @@ func (c *client) SetupBuild(ctx context.Context, b *pipeline.Build) error {
 	}
 	
 	// Pipeline pods don't need to communicate with kubernetes.
-	c.Pod.Spec.AutomountServiceAccountToken = false
+	c.Pod.Spec.AutomountServiceAccountToken = &false
 
 	// TODO: Vela admin defined worker-specific nodeSelector, tolerations, affinity
 
