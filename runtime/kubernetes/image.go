@@ -34,7 +34,6 @@ const imagePatch = `
 func (c *client) CreateImage(ctx context.Context, ctn *pipeline.Container) error {
 	logrus.Tracef("creating image for container %s", ctn.ID)
 
-	// TODO: maybe check to see if the image exists here?
 	return nil
 }
 
