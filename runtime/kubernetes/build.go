@@ -25,11 +25,9 @@ func (c *client) SetupBuild(ctx context.Context, b *pipeline.Build) error {
 		Name:   b.ID,
 		Labels: map[string]string{"pipeline": b.ID},
 	}
-	
-	// Pipeline pods don't need to communicate with kubernetes.
-	c.Pod.Spec.AutomountServiceAccountToken = &false
 
-	// TODO: Vela admin defined worker-specific nodeSelector, tolerations, affinity
+	// TODO: Vela admin defined worker-specific:
+	//       NodeSelector, Tolerations, Affinity, AutomountServiceAccountToken
 
 	// create the restart policy for the pod
 	//
