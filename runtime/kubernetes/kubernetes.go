@@ -33,7 +33,7 @@ type client struct {
 	// commonVolumeMounts includes workspace mount and any global host mounts (VELA_RUNTIME_VOLUMES)
 	commonVolumeMounts []v1.VolumeMount
 	// indicates when the pod has been created in kubernetes
-	createdBuild bool
+	createdPod bool
 }
 
 // New returns an Engine implementation that
