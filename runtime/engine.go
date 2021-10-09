@@ -23,10 +23,10 @@ type Engine interface {
 
 	// Build Engine Interface Functions
 
-	// PreAssembleBuild is called before running SetupContainer for any containers.
-	PreAssembleBuild(context.Context, *pipeline.Build) error
-	// PostAssembleBuild is called after running SetupContainer for all containers.
-	PostAssembleBuild(context.Context, *pipeline.Build) error
+	// SetupBuild prepares the pipeline build.
+	SetupBuild(context.Context, *pipeline.Build) error
+	// AssembleBuild finalizes pipeline build setup.
+	AssembleBuild(context.Context, *pipeline.Build) error
 
 	// Container Engine Interface Functions
 

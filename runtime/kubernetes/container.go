@@ -113,34 +113,6 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 // nolint: lll // ignore long line length
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
-
-	// TODO: investigate way to move this logic
-	//
-	// check if the pod is already created
-	if len(c.Pod.ObjectMeta.Name) == 0 {
-		// create the object metadata for the pod
-		//
-		// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#ObjectMeta
-		c.Pod.ObjectMeta = metav1.ObjectMeta{
-			Name:   b.ID,
-			Labels: map[string]string{"pipeline": b.ID},
-		}
-
-		// create the restart policy for the pod
-		//
-		// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#RestartPolicy
-		c.Pod.Spec.RestartPolicy = v1.RestartPolicyNever
-
-		logrus.Infof("creating pod %s", c.Pod.ObjectMeta.Name)
-		// send API call to create the pod
-		//
-		// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
-		_, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Create(context.Background(), c.Pod, metav1.CreateOptions{})
-		if err != nil {
-			return err
-		}
-	}
-
 	// parse image from step
 	_image, err := image.ParseWithError(ctn.Image)
 	if err != nil {

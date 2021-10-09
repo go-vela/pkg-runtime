@@ -11,16 +11,16 @@ import (
 	"github.com/go-vela/types/pipeline"
 )
 
-// PreAssembleBuild is called before setting up any containers for the build
-func (c *client) PreAssembleBuild(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("pre-assemble build %s", b.ID)
+// SetupBuild prepares the pipeline build. This is a no-op for docker.
+func (c *client) SetupBuild(ctx context.Context, b *pipeline.Build) error {
+	logrus.Tracef("setting up for build %s", b.ID)
 
 	return nil
 }
 
-// PostAssembleBuild is called after all containers have been setup
-func (c *client) PostAssembleBuild(ctx context.Context, b *pipeline.Build) error {
-	logrus.Tracef("post-assemble build %s", b.ID)
+// AssembleBuild finalizes pipeline build setup. This is a no-op for docker.
+func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
+	logrus.Tracef("assembling build %s", b.ID)
 
 	return nil
 }
