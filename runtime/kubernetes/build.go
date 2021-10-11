@@ -99,9 +99,7 @@ func (c *client) RemoveBuild(ctx context.Context, b *pipeline.Build) error {
 		return err
 	}
 
-	c.Pod = &v1.Pod{
-		TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
-	}
+	c.Pod = &v1.Pod{}
 
 	return nil
 }
