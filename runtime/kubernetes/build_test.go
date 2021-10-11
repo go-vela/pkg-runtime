@@ -151,27 +151,27 @@ func TestKubernetes_RemoveBuild(t *testing.T) {
 	// setup tests
 	tests := []struct {
 		failure    bool
+		createdPod bool
 		pipeline   *pipeline.Build
 		pod        *v1.Pod
-		createdPod bool
 	}{
 		{
 			failure:    false,
+			createdPod: true,
 			pipeline:   _stages,
 			pod:        _pod,
-			createdPod: true,
 		},
 		{
 			failure:    false,
+			createdPod: true,
 			pipeline:   _steps,
 			pod:        _pod,
-			createdPod: true,
 		},
 		{
 			failure:    false,
+			createdPod: false,
 			pipeline:   _stages,
 			pod:        &v1.Pod{},
-			createdPod: false,
 		},
 		{
 			failure:    false,
