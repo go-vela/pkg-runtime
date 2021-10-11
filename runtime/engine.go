@@ -23,6 +23,9 @@ type Engine interface {
 
 	// Build Engine Interface Functions
 
+	// InspectBuild defines a function that
+	// displays details about the build for the init step.
+	InspectBuild(ctx context.Context, b *pipeline.Build) ([]byte, error)
 	// SetupBuild defines a function that
 	// prepares the pipeline build.
 	SetupBuild(context.Context, *pipeline.Build) error

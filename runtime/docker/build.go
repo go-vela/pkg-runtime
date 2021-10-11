@@ -12,6 +12,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// InspectBuild displays details about the pod for the init step.
+// This is a no-op for docker.
+func (c *client) InspectBuild(ctx context.Context, b *pipeline.Build) ([]byte, error) {
+	logrus.Tracef("inspecting build for pipeline %s", b.ID)
+
+	return []byte{}, nil
+}
+
 // SetupBuild prepares the pipeline build.
 // This is a no-op for docker.
 func (c *client) SetupBuild(ctx context.Context, b *pipeline.Build) error {

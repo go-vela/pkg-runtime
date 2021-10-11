@@ -6,6 +6,8 @@ package kubernetes
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/go-vela/types/pipeline"
 
@@ -14,6 +16,25 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// InspectBuild displays details about the pod for the init step.
+func (c *client) InspectBuild(ctx context.Context, b *pipeline.Build) ([]byte, error) {
+	logrus.Tracef("inspecting build pod for pipeline %s", b.ID)
+
+	output := []byte(fmt.Sprintf("> Inspecting pod for pipeline %s", b.ID))
+
+	// TODO: make sure this does not expose any secrets. (container env?)
+	buildOutput, err := json.MarshalIndent(c.Pod, "", " ")
+	if err != nil {
+		return []byte{}, fmt.Errorf("unable to serialize pod: %w", err)
+	}
+
+	output = append(output, buildOutput...)
+
+	// TODO: make other k8s Inspect* funcs no-ops (prefer this method):
+	// 	     InspectVolume, InspectImage, InspectNetwork
+	return output, nil
+}
 
 // SetupBuild prepares the pod metadata for the pipeline build.
 func (c *client) SetupBuild(ctx context.Context, b *pipeline.Build) error {

@@ -13,6 +13,46 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+func TestKubernetes_InspectBuild(t *testing.T) {
+	// setup types
+	_engine, err := NewMock(_pod)
+	if err != nil {
+		t.Errorf("unable to create runtime engine: %v", err)
+	}
+
+	// setup tests
+	tests := []struct {
+		failure  bool
+		pipeline *pipeline.Build
+	}{
+		{
+			failure:  false,
+			pipeline: _stages,
+		},
+		{
+			failure:  false,
+			pipeline: _steps,
+		},
+	}
+
+	// run tests
+	for _, test := range tests {
+		_, err = _engine.InspectBuild(context.Background(), test.pipeline)
+
+		if test.failure {
+			if err == nil {
+				t.Errorf("InspectBuild should have returned err")
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("InspectBuild returned err: %v", err)
+		}
+	}
+}
+
 func TestKubernetes_SetupBuild(t *testing.T) {
 	// setup types
 	_engine, err := NewMock(&v1.Pod{})
