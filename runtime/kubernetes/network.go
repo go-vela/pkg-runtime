@@ -84,8 +84,6 @@ func (c *client) CreateNetwork(ctx context.Context, b *pipeline.Build) error {
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
 	c.Pod.Spec.HostAliases = append(c.Pod.Spec.HostAliases, network)
 
-	// TODO: Vela admin defined worker-specific dnsConfig, dnsPolicy
-
 	return nil
 }
 
@@ -105,8 +103,6 @@ func (c *client) InspectNetwork(ctx context.Context, b *pipeline.Build) ([]byte,
 	if err != nil {
 		return output, err
 	}
-
-	// TODO: print dnsPolicy, dnsConfig if defined
 
 	return append(output, append(network, "\n"...)...), nil
 }

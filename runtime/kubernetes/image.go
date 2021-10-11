@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"strings"
 
-	imageUtils "github.com/go-vela/pkg-runtime/internal/image"
 	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
@@ -62,10 +61,6 @@ func (c *client) InspectImage(ctx context.Context, ctn *pipeline.Container) ([]b
 		return output, err
 	}
 
-	// currentImage is always kubernetes/pause, which is not very helpful.
-	output = append(output, image...)
-	output = append(output, "\n# Planned image = "...)
-	output = append(output, imageUtils.Parse(ctn.Image)...)
-	output = append(output, "\n"...)
-	return output, nil
+	// add new line to end of bytes
+	return append(output, append(image, "\n"...)...), nil
 }
