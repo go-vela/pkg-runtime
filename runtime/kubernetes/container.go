@@ -174,7 +174,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 
 	// TODO: add SecurityContext options (runAsUser, runAsNonRoot, sysctls)
 
-	// Configure the environment as late as possible (just before pod creation). It isn't ready at this point.
+	// Executor.CreateBuild extends the environment AFTER calling Runtime.SetupBuild.
+	// So, configure the environment as late as possible (just before pod creation).
 
 	// check if the entrypoint is provided
 	if len(ctn.Entrypoint) > 0 {
@@ -196,7 +197,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	return nil
 }
 
-func (c *client) setupContainerEnvironment(ctx context.Context, ctn *pipeline.Container) error {
+func (c *client) setupContainerEnvironment(ctn *pipeline.Container) error {
 	logrus.Tracef("setting up environment for container %s", ctn.ID)
 
 	// -1 to convert to 0-based index, -1 for injected init container

@@ -70,7 +70,7 @@ func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
 
 	// last minute Environment setup
 	for _, _service := range b.Services {
-		err = c.setupContainerEnvironment(ctx, _service)
+		err = c.setupContainerEnvironment(_service)
 		if err != nil {
 			return err
 		}
@@ -81,7 +81,7 @@ func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
 			continue
 		}
 		for _, _step := range _stage.Steps {
-			err = c.setupContainerEnvironment(ctx, _step)
+			err = c.setupContainerEnvironment(_step)
 			if err != nil {
 				return err
 			}
@@ -92,7 +92,7 @@ func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
 		if _step.Name == "init" {
 			continue
 		}
-		err = c.setupContainerEnvironment(ctx, _step)
+		err = c.setupContainerEnvironment(_step)
 		if err != nil {
 			return err
 		}
@@ -101,7 +101,7 @@ func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
 		if _secret.Origin.Empty() {
 			continue
 		}
-		err = c.setupContainerEnvironment(ctx, _secret.Origin)
+		err = c.setupContainerEnvironment(_secret.Origin)
 		if err != nil {
 			return err
 		}
