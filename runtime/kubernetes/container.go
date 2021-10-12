@@ -82,7 +82,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		return err
 	}
 
-	// set the pod container image to the parsed step image
+	// set the pod container image to the parsed step image (-1 as clone is not present, -1 to convert to 0-based index)
 	c.Pod.Spec.Containers[ctn.Number-2].Image = _image
 
 	// send API call to patch the pod with the new container image
@@ -173,14 +173,7 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 
 	// TODO: add SecurityContext options (runAsUser, runAsNonRoot, sysctls)
 
-	// check if the environment is provided
-	if len(ctn.Environment) > 0 {
-		// iterate through each element in the container environment
-		for k, v := range ctn.Environment {
-			// add key/value environment to container config
-			container.Env = append(container.Env, v1.EnvVar{Name: k, Value: v})
-		}
-	}
+	// Configure the environment as late as possible (just before pod creation). It isn't ready at this point.
 
 	// check if the entrypoint is provided
 	if len(ctn.Entrypoint) > 0 {
@@ -199,6 +192,24 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
 	c.Pod.Spec.Containers = append(c.Pod.Spec.Containers, container)
 
+	return nil
+}
+
+func (c *client) setupContainerEnvironment(ctx context.Context, ctn *pipeline.Container) error {
+	// -1 to convert to 0-based index
+	container := c.Pod.Spec.Containers[ctn.Number-1]
+	if !strings.EqualFold(container.Name, ctn.ID) {
+		return fmt.Errorf("wrong container! got %s instead of %s", container.Name, ctn.ID)
+	}
+
+	// check if the environment is provided
+	if len(ctn.Environment) > 0 {
+		// iterate through each element in the container environment
+		for k, v := range ctn.Environment {
+			// add key/value environment to container config
+			container.Env = append(container.Env, v1.EnvVar{Name: k, Value: v})
+		}
+	}
 	return nil
 }
 
