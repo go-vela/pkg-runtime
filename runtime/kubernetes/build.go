@@ -76,6 +76,10 @@ func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
 		}
 	}
 	for _, _stage := range b.Stages {
+		// TODO: remove hardcoded reference
+		if _stage.Name == "init" {
+			continue
+		}
 		for _, _step := range _stage.Steps {
 			err = c.setupContainerEnvironment(ctx, _step)
 			if err != nil {
@@ -84,6 +88,10 @@ func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
 		}
 	}
 	for _, _step := range b.Steps {
+		// TODO: remove hardcoded reference
+		if _step.Name == "init" {
+			continue
+		}
 		err = c.setupContainerEnvironment(ctx, _step)
 		if err != nil {
 			return err
