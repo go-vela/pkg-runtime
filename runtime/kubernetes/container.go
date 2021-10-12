@@ -217,7 +217,7 @@ func (c *client) setupContainerEnvironment(ctx context.Context, ctn *pipeline.Co
 		if err != nil {
 			return fmt.Errorf("unable to serialize container.env: %w", err)
 		}
-		logrus.Tracef(env)
+		logrus.Tracef("%s", env)
 	}
 	return nil
 }
