@@ -7,6 +7,7 @@ package kubernetes
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -212,6 +213,11 @@ func (c *client) setupContainerEnvironment(ctx context.Context, ctn *pipeline.Co
 			// add key/value environment to container config
 			container.Env = append(container.Env, v1.EnvVar{Name: k, Value: v})
 		}
+		env, err := json.MarshalIndent(container.Env, "", " ")
+		if err != nil {
+			return fmt.Errorf("unable to serialize container.env: %w", err)
+		}
+		logrus.Tracef(env)
 	}
 	return nil
 }
