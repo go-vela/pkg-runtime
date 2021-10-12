@@ -200,7 +200,7 @@ func (c *client) setupContainerEnvironment(ctx context.Context, ctn *pipeline.Co
 	logrus.Tracef("setting up environment for container %s", ctn.ID)
 
 	// -1 to convert to 0-based index, -1 for injected init container
-	container := c.Pod.Spec.Containers[ctn.Number-2]
+	container := &c.Pod.Spec.Containers[ctn.Number-2]
 	if !strings.EqualFold(container.Name, ctn.ID) {
 		return fmt.Errorf("wrong container! got %s instead of %s", container.Name, ctn.ID)
 	}
