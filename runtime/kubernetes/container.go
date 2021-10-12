@@ -196,8 +196,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 }
 
 func (c *client) setupContainerEnvironment(ctx context.Context, ctn *pipeline.Container) error {
-	// -1 to convert to 0-based index
-	container := c.Pod.Spec.Containers[ctn.Number-1]
+	// -1 to convert to 0-based index, -1 for injected init container
+	container := c.Pod.Spec.Containers[ctn.Number-2]
 	if !strings.EqualFold(container.Name, ctn.ID) {
 		return fmt.Errorf("wrong container! got %s instead of %s", container.Name, ctn.ID)
 	}
