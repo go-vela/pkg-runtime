@@ -124,6 +124,7 @@ func (c *client) RemoveBuild(ctx context.Context, b *pipeline.Build) error {
 	}
 
 	c.Pod = &v1.Pod{}
+	c.createdPod = false
 
 	return nil
 }
