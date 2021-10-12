@@ -196,6 +196,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 }
 
 func (c *client) setupContainerEnvironment(ctx context.Context, ctn *pipeline.Container) error {
+	logrus.Tracef("setting up environment for container %s", ctn.ID)
+
 	// -1 to convert to 0-based index, -1 for injected init container
 	container := c.Pod.Spec.Containers[ctn.Number-2]
 	if !strings.EqualFold(container.Name, ctn.ID) {
@@ -204,6 +206,7 @@ func (c *client) setupContainerEnvironment(ctx context.Context, ctn *pipeline.Co
 
 	// check if the environment is provided
 	if len(ctn.Environment) > 0 {
+		logrus.Tracef("container %s should have environment values", ctn.ID)
 		// iterate through each element in the container environment
 		for k, v := range ctn.Environment {
 			// add key/value environment to container config
