@@ -67,6 +67,11 @@ func (c *client) SetupBuild(ctx context.Context, b *pipeline.Build) error {
 func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("assembling build %s", b.ID)
 
+	// If the api call to create the pod fails, the pod might
+	// partially exist. So, set this first to make sure all
+	// remnants get deleted.
+	c.createdPod = true
+
 	logrus.Infof("creating pod %s", c.Pod.ObjectMeta.Name)
 	// send API call to create the pod
 	//
@@ -77,8 +82,6 @@ func (c *client) AssembleBuild(ctx context.Context, b *pipeline.Build) error {
 	if err != nil {
 		return err
 	}
-
-	c.createdPod = true
 
 	return nil
 }
