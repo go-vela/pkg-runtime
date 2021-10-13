@@ -100,33 +100,41 @@ func TestKubernetes_AssembleBuild(t *testing.T) {
 	tests := []struct {
 		failure  bool
 		pipeline *pipeline.Build
-		pod      *v1.Pod
+		// k8sPod is the pod that the mock Kubernetes client will return
+		k8sPod *v1.Pod
+		// enginePod is the pod under construction in the Runtime Engine
+		enginePod *v1.Pod
 	}{
 		{
-			failure:  false,
-			pipeline: _stages,
-			pod:      &v1.Pod{},
+			failure:   false,
+			pipeline:  _stages,
+			k8sPod:    &v1.Pod{},
+			enginePod: _stagesPod,
 		},
 		{
-			failure:  false,
-			pipeline: _steps,
-			pod:      &v1.Pod{},
+			failure:   false,
+			pipeline:  _steps,
+			k8sPod:    &v1.Pod{},
+			enginePod: _pod,
 		},
 		{
-			failure:  true,
-			pipeline: _stages,
-			pod:      _pod,
+			failure:   true,
+			pipeline:  _stages,
+			k8sPod:    _stagesPod,
+			enginePod: _stagesPod,
 		},
 		{
-			failure:  true,
-			pipeline: _steps,
-			pod:      _pod,
+			failure:   true,
+			pipeline:  _steps,
+			k8sPod:    _pod,
+			enginePod: _pod,
 		},
 	}
 
 	// run tests
 	for _, test := range tests {
-		_engine, err := NewMock(test.pod)
+		_engine, err := NewMock(test.k8sPod)
+		_engine.Pod = test.enginePod
 		if err != nil {
 			t.Errorf("unable to create runtime engine: %v", err)
 		}
