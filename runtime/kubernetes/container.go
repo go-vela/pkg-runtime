@@ -7,7 +7,6 @@ package kubernetes
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
