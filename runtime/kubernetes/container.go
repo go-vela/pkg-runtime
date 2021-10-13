@@ -83,7 +83,8 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 		return err
 	}
 
-	// set the pod container image to the parsed step image (-1 as clone is not present, -1 to convert to 0-based index)
+	// set the pod container image to the parsed step image
+	// (-1 to convert to 0-based index, -1 for init which isn't a container)
 	c.Pod.Spec.Containers[ctn.Number-2].Image = _image
 
 	// send API call to patch the pod with the new container image
@@ -200,7 +201,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 func (c *client) setupContainerEnvironment(ctn *pipeline.Container) error {
 	logrus.Tracef("setting up environment for container %s", ctn.ID)
 
-	// -1 to convert to 0-based index, -1 for injected init container
+	// get the matching container spec
+	// (-1 to convert to 0-based index, -1 for injected init container)
 	container := &c.Pod.Spec.Containers[ctn.Number-2]
 	if !strings.EqualFold(container.Name, ctn.ID) {
 		return fmt.Errorf("wrong container! got %s instead of %s", container.Name, ctn.ID)
