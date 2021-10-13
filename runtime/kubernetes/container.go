@@ -210,17 +210,11 @@ func (c *client) setupContainerEnvironment(ctn *pipeline.Container) error {
 
 	// check if the environment is provided
 	if len(ctn.Environment) > 0 {
-		logrus.Tracef("container %s should have environment values", ctn.ID)
 		// iterate through each element in the container environment
 		for k, v := range ctn.Environment {
 			// add key/value environment to container config
 			container.Env = append(container.Env, v1.EnvVar{Name: k, Value: v})
 		}
-		env, err := json.MarshalIndent(c.Pod.Spec.Containers[ctn.Number-2].Env, "", " ")
-		if err != nil {
-			return fmt.Errorf("unable to serialize container.env: %w", err)
-		}
-		logrus.Tracef("%s", env)
 	}
 	return nil
 }
