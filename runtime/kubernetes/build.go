@@ -6,11 +6,11 @@ package kubernetes
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/go-vela/types/pipeline"
 
+	"github.com/buildkite/yaml"
 	"github.com/sirupsen/logrus"
 
 	v1 "k8s.io/api/core/v1"
@@ -25,7 +25,7 @@ func (c *client) InspectBuild(ctx context.Context, b *pipeline.Build) ([]byte, e
 
 	// TODO: The environment gets populated in AssembleBuild, after InspectBuild runs.
 	//       But, we should make sure that secrets can't be leaked here anyway.
-	buildOutput, err := json.MarshalIndent(c.Pod, "", " ")
+	buildOutput, err := yaml.Marshal(c.Pod)
 	if err != nil {
 		return []byte{}, fmt.Errorf("unable to serialize pod: %w", err)
 	}
