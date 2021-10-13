@@ -23,7 +23,8 @@ func (c *client) InspectBuild(ctx context.Context, b *pipeline.Build) ([]byte, e
 
 	output := []byte(fmt.Sprintf("> Inspecting pod for pipeline %s", b.ID))
 
-	// TODO: make sure this does not expose any secrets. (container env?)
+	// TODO: The environment gets populated in AssembleBuild, after InspectBuild runs.
+	//       But, we should make sure that secrets can't be leaked here anyway.
 	buildOutput, err := json.MarshalIndent(c.Pod, "", " ")
 	if err != nil {
 		return []byte{}, fmt.Errorf("unable to serialize pod: %w", err)
