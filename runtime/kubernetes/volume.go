@@ -8,10 +8,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	v1 "k8s.io/api/core/v1"
 
 	vol "github.com/go-vela/pkg-runtime/internal/volume"
+	"github.com/go-vela/types/constants"
 	"github.com/go-vela/types/pipeline"
 
 	"github.com/sirupsen/logrus"
@@ -21,7 +23,7 @@ import (
 func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	logrus.Tracef("creating volume for pipeline %s", b.ID)
 
-	// create the volume for the pod
+	// create the workspace volume for the pod
 	//
 	// This is done due to the nature of how volumes works inside
 	// the pod. Each container inside the pod can access and use
@@ -36,36 +38,56 @@ func (c *client) CreateVolume(ctx context.Context, b *pipeline.Build) error {
 	//   * https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#Volume
-	volume := v1.Volume{
+	workspaceVolume := v1.Volume{
 		Name: b.ID,
 		VolumeSource: v1.VolumeSource{
 			EmptyDir: &v1.EmptyDirVolumeSource{},
 		},
 	}
 
+	// create the workspace volumeMount for the pod
+	//
+	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#VolumeMount
+	workspaceVolumeMount := v1.VolumeMount{
+		Name:      b.ID,
+		MountPath: constants.WorkspaceMount,
+	}
+
 	// add the volume definition to the pod spec
 	//
 	// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodSpec
-	c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, volume)
+	c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, workspaceVolume)
 
-	// check if other volumes were provided
+	// save the volumeMount to add to each of the containers in the pod spec later
+	c.commonVolumeMounts = append(c.commonVolumeMounts, workspaceVolumeMount)
+
+	// check if global host volumes were provided (VELA_RUNTIME_VOLUMES)
 	if len(c.config.Volumes) > 0 {
 		// iterate through all volumes provided
 		for k, v := range c.config.Volumes {
 			// parse the volume provided
 			_volume := vol.Parse(v)
+			_volumeName := fmt.Sprintf("%s_%d", b.ID, k)
 
 			// add the volume to the set of pod volumes
 			c.Pod.Spec.Volumes = append(c.Pod.Spec.Volumes, v1.Volume{
-				Name: fmt.Sprintf("%s_%d", b.ID, k),
+				Name: _volumeName,
 				VolumeSource: v1.VolumeSource{
 					HostPath: &v1.HostPathVolumeSource{
 						Path: _volume.Source,
 					},
 				},
 			})
+
+			// save the volumeMounts for later addition to each container's mounts
+			c.commonVolumeMounts = append(c.commonVolumeMounts, v1.VolumeMount{
+				Name:      _volumeName,
+				MountPath: _volume.Destination,
+			})
 		}
 	}
+
+	// TODO: extend c.config.Volumes to include container-specific volumes (container.Volumes)
 
 	return nil
 }
@@ -104,4 +126,49 @@ func (c *client) RemoveVolume(ctx context.Context, b *pipeline.Build) error {
 	c.Pod.Spec.Volumes = []v1.Volume{}
 
 	return nil
+}
+
+// setupVolumeMounts generates the VolumeMounts for a given container.
+// nolint:unparam // keep signature similar to Engine interface methods despite unused ctx and err
+func (c *client) setupVolumeMounts(ctx context.Context, ctn *pipeline.Container) (
+	volumeMounts []v1.VolumeMount,
+	err error,
+) {
+	logrus.Tracef("setting up VolumeMounts for container %s", ctn.ID)
+
+	// add workspace mount and any global host mounts (VELA_RUNTIME_VOLUMES)
+	volumeMounts = append(volumeMounts, c.commonVolumeMounts...)
+
+	// -------------------- Start of TODO: --------------------
+	//
+	// Remove the below code once the mounting issue with Kaniko is
+	// resolved to allow mounting private cert bundles with Vela.
+	//
+	// This code is required due to a known bug in Kaniko:
+	//
+	// * https://github.com/go-vela/community/issues/253
+
+	// check if the pipeline container image contains
+	// the key words "kaniko" and "vela"
+	//
+	// this is a soft check for the Vela Kaniko plugin
+	if strings.Contains(ctn.Image, "kaniko") &&
+		strings.Contains(ctn.Image, "vela") {
+		// iterate through the list of host mounts provided
+		for i, mount := range volumeMounts {
+			// check if the path for the mount contains "/etc/ssl/certs"
+			//
+			// this is a soft check for mounting private cert bundles
+			if strings.Contains(mount.MountPath, "/etc/ssl/certs") {
+				// remove the private cert bundle mount from the host config
+				volumeMounts = append(volumeMounts[:i], volumeMounts[i+1:]...)
+			}
+		}
+	}
+	//
+	// -------------------- End of TODO: --------------------
+
+	// TODO: extend volumeMounts based on ctn.Volumes
+
+	return volumeMounts, nil
 }
