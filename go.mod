@@ -3,7 +3,7 @@ module github.com/go-vela/pkg-runtime
 go 1.16
 
 require (
-	github.com/buildkite/yaml v0.0.0-20181016232759-0caa5f0796e3
+	github.com/buildkite/yaml/v2 v2.2.0
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/docker/docker v20.10.9+incompatible
 	github.com/docker/go-units v0.4.0
