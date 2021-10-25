@@ -197,6 +197,8 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	return nil
 }
 
+// setupContainerEnvironment adds env vars to the Pod spec for a container.
+// Call this just before pod creation to capture as many env changes as possible.
 func (c *client) setupContainerEnvironment(ctn *pipeline.Container) error {
 	logrus.Tracef("setting up environment for container %s", ctn.ID)
 
