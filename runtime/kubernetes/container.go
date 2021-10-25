@@ -66,7 +66,7 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 // RemoveContainer deletes (kill, remove) the pipeline container.
 // This is a no-op for kubernetes. RemoveBuild handles deleting the pod.
 func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("removing container %s", ctn.ID)
+	logrus.Tracef("no-op: removing container %s", ctn.ID)
 
 	return nil
 }
