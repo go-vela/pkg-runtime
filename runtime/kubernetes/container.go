@@ -64,46 +64,9 @@ func (c *client) InspectContainer(ctx context.Context, ctn *pipeline.Container) 
 }
 
 // RemoveContainer deletes (kill, remove) the pipeline container.
+// This is a no-op for kubernetes. RemoveBuild handles deleting the pod.
 func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) error {
-	logrus.Tracef("removing container %s", ctn.ID)
-
-	// TODO: investigate way to move this logic
-	//
-	// check if the pod is already created
-	if len(c.Pod.ObjectMeta.Name) > 0 {
-		// create variables for the delete options
-		//
-		// This is necessary because the delete options
-		// expect all values to be passed by reference.
-		var (
-			period = int64(0)
-			policy = metav1.DeletePropagationForeground
-		)
-
-		// create options for removing the pod
-		//
-		// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#DeleteOptions
-		opts := metav1.DeleteOptions{
-			GracePeriodSeconds: &period,
-			// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#DeletionPropagation
-			PropagationPolicy: &policy,
-		}
-
-		logrus.Infof("removing pod %s", c.Pod.ObjectMeta.Name)
-		// send API call to delete the pod
-		err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Delete(
-			context.Background(),
-			c.Pod.ObjectMeta.Name,
-			opts,
-		)
-		if err != nil {
-			return err
-		}
-
-		c.Pod = &v1.Pod{
-			TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Pod"},
-		}
-	}
+	logrus.Tracef("no-op: removing container %s", ctn.ID)
 
 	return nil
 }
@@ -113,34 +76,6 @@ func (c *client) RemoveContainer(ctx context.Context, ctn *pipeline.Container) e
 // nolint: lll // ignore long line length
 func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *pipeline.Build) error {
 	logrus.Tracef("running container %s", ctn.ID)
-
-	// TODO: investigate way to move this logic
-	//
-	// check if the pod is already created
-	if len(c.Pod.ObjectMeta.Name) == 0 {
-		// create the object metadata for the pod
-		//
-		// https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1?tab=doc#ObjectMeta
-		c.Pod.ObjectMeta = metav1.ObjectMeta{
-			Name:   b.ID,
-			Labels: map[string]string{"pipeline": b.ID},
-		}
-
-		// create the restart policy for the pod
-		//
-		// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#RestartPolicy
-		c.Pod.Spec.RestartPolicy = v1.RestartPolicyNever
-
-		logrus.Infof("creating pod %s", c.Pod.ObjectMeta.Name)
-		// send API call to create the pod
-		//
-		// https://pkg.go.dev/k8s.io/client-go/kubernetes/typed/core/v1?tab=doc#PodInterface
-		_, err := c.Kubernetes.CoreV1().Pods(c.config.Namespace).Create(context.Background(), c.Pod, metav1.CreateOptions{})
-		if err != nil {
-			return err
-		}
-	}
-
 	// parse image from step
 	_image, err := image.ParseWithError(ctn.Image)
 	if err != nil {
@@ -148,6 +83,7 @@ func (c *client) RunContainer(ctx context.Context, ctn *pipeline.Container, b *p
 	}
 
 	// set the pod container image to the parsed step image
+	// (-1 to convert to 0-based index, -1 for init which isn't a container)
 	c.Pod.Spec.Containers[ctn.Number-2].Image = _image
 
 	// send API call to patch the pod with the new container image
@@ -236,14 +172,10 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 		}
 	}
 
-	// check if the environment is provided
-	if len(ctn.Environment) > 0 {
-		// iterate through each element in the container environment
-		for k, v := range ctn.Environment {
-			// add key/value environment to container config
-			container.Env = append(container.Env, v1.EnvVar{Name: k, Value: v})
-		}
-	}
+	// TODO: add SecurityContext options (runAsUser, runAsNonRoot, sysctls)
+
+	// Executor.CreateBuild extends the environment AFTER calling Runtime.SetupBuild.
+	// So, configure the environment as late as possible (just before pod creation).
 
 	// check if the entrypoint is provided
 	if len(ctn.Entrypoint) > 0 {
@@ -265,6 +197,29 @@ func (c *client) SetupContainer(ctx context.Context, ctn *pipeline.Container) er
 	return nil
 }
 
+// setupContainerEnvironment adds env vars to the Pod spec for a container.
+// Call this just before pod creation to capture as many env changes as possible.
+func (c *client) setupContainerEnvironment(ctn *pipeline.Container) error {
+	logrus.Tracef("setting up environment for container %s", ctn.ID)
+
+	// get the matching container spec
+	// (-1 to convert to 0-based index, -1 for injected init container)
+	container := &c.Pod.Spec.Containers[ctn.Number-2]
+	if !strings.EqualFold(container.Name, ctn.ID) {
+		return fmt.Errorf("wrong container! got %s instead of %s", container.Name, ctn.ID)
+	}
+
+	// check if the environment is provided
+	if len(ctn.Environment) > 0 {
+		// iterate through each element in the container environment
+		for k, v := range ctn.Environment {
+			// add key/value environment to container config
+			container.Env = append(container.Env, v1.EnvVar{Name: k, Value: v})
+		}
+	}
+	return nil
+}
+
 // TailContainer captures the logs for the pipeline container.
 //
 // nolint: lll // ignore long line length due to variable names
@@ -281,9 +236,15 @@ func (c *client) TailContainer(ctx context.Context, ctn *pipeline.Container) (io
 		//
 		// https://pkg.go.dev/k8s.io/api/core/v1?tab=doc#PodLogOptions
 		opts := &v1.PodLogOptions{
-			Container:  ctn.ID,
-			Follow:     true,
-			Previous:   false,
+			Container: ctn.ID,
+			Follow:    true,
+			// steps can exit quickly, and might be gone before
+			// log tailing has started, so we need to request
+			// logs for previously exited containers as well.
+			// Pods get deleted after job completion, and names for
+			// pod+container don't get reused. So, previous
+			// should only retrieve logs for the current build step.
+			Previous:   true,
 			Timestamps: false,
 		}
 
