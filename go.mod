@@ -5,13 +5,13 @@ go 1.16
 require (
 	github.com/buildkite/yaml v0.0.0-20181016232759-0caa5f0796e3
 	github.com/docker/distribution v2.7.1+incompatible
-	github.com/docker/docker v20.10.8+incompatible
+	github.com/docker/docker v20.10.9+incompatible
 	github.com/docker/go-units v0.4.0
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/gin-gonic/gin v1.7.4
-	github.com/go-vela/compiler v0.10.0-rc1
-	github.com/go-vela/mock v0.10.0-rc1
-	github.com/go-vela/types v0.10.0-rc1
+	github.com/go-vela/compiler v0.10.0
+	github.com/go-vela/mock v0.10.0
+	github.com/go-vela/types v0.10.0
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/hashicorp/go-hclog v0.10.0 // indirect
