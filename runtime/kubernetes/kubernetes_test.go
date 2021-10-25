@@ -123,6 +123,12 @@ var (
 					WorkingDir:      "/vela/src/github.com/octocat/helloworld",
 					ImagePullPolicy: v1.PullAlways,
 				},
+				{
+					Name:            "service-github-octocat-1-postgres",
+					Image:           "postgres:12-alpine",
+					WorkingDir:      "/vela/src/github.com/octocat/helloworld",
+					ImagePullPolicy: v1.PullAlways,
+				},
 			},
 			HostAliases: []v1.HostAlias{
 				{
@@ -135,7 +141,7 @@ var (
 			},
 			Volumes: []v1.Volume{
 				{
-					Name: "github_octocat_1",
+					Name: "github-octocat-1",
 					VolumeSource: v1.VolumeSource{
 						EmptyDir: &v1.EmptyDirVolumeSource{},
 					},
@@ -146,15 +152,15 @@ var (
 
 	_stages = &pipeline.Build{
 		Version: "1",
-		ID:      "github_octocat_1",
+		ID:      "github-octocat-1",
 		Services: pipeline.ContainerSlice{
 			{
-				ID:          "service_github_octocat_1_postgres",
+				ID:          "service-github-octocat-1-postgres",
 				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "postgres:12-alpine",
 				Name:        "postgres",
-				Number:      1,
+				Number:      4,
 				Ports:       []string{"5432:5432"},
 			},
 		},
@@ -163,7 +169,7 @@ var (
 				Name: "init",
 				Steps: pipeline.ContainerSlice{
 					{
-						ID:          "github_octocat_1_init_init",
+						ID:          "step-github-octocat-1-init-init",
 						Directory:   "/vela/src/github.com/octocat/helloworld",
 						Environment: map[string]string{"FOO": "bar"},
 						Image:       "#init",
@@ -178,7 +184,7 @@ var (
 				Needs: []string{"init"},
 				Steps: pipeline.ContainerSlice{
 					{
-						ID:          "github_octocat_1_clone_clone",
+						ID:          "step-github-octocat-1-clone-clone",
 						Directory:   "/vela/src/github.com/octocat/helloworld",
 						Environment: map[string]string{"FOO": "bar"},
 						Image:       "target/vela-git:v0.4.0",
@@ -193,7 +199,7 @@ var (
 				Needs: []string{"clone"},
 				Steps: pipeline.ContainerSlice{
 					{
-						ID:          "github_octocat_1_echo_echo",
+						ID:          "step-github-octocat-1-echo-echo",
 						Commands:    []string{"echo hello"},
 						Detach:      true,
 						Directory:   "/vela/src/github.com/octocat/helloworld",
@@ -210,21 +216,21 @@ var (
 
 	_steps = &pipeline.Build{
 		Version: "1",
-		ID:      "github_octocat_1",
+		ID:      "github-octocat-1",
 		Services: pipeline.ContainerSlice{
 			{
-				ID:          "service_github_octocat_1_postgres",
+				ID:          "service-github-octocat-1-postgres",
 				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "postgres:12-alpine",
 				Name:        "postgres",
-				Number:      1,
+				Number:      4,
 				Ports:       []string{"5432:5432"},
 			},
 		},
 		Steps: pipeline.ContainerSlice{
 			{
-				ID:          "step_github_octocat_1_init",
+				ID:          "step-github-octocat-1-init",
 				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "#init",
@@ -233,7 +239,7 @@ var (
 				Pull:        "always",
 			},
 			{
-				ID:          "step_github_octocat_1_clone",
+				ID:          "step-github-octocat-1-clone",
 				Directory:   "/vela/src/github.com/octocat/helloworld",
 				Environment: map[string]string{"FOO": "bar"},
 				Image:       "target/vela-git:v0.4.0",
@@ -242,7 +248,7 @@ var (
 				Pull:        "always",
 			},
 			{
-				ID:          "step_github_octocat_1_echo",
+				ID:          "step-github-octocat-1-echo",
 				Commands:    []string{"echo hello"},
 				Detach:      true,
 				Directory:   "/vela/src/github.com/octocat/helloworld",
@@ -251,6 +257,59 @@ var (
 				Name:        "echo",
 				Number:      3,
 				Pull:        "always",
+			},
+		},
+	}
+
+	_stagesPod = &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "github-octocat-1",
+			Namespace: "test",
+			Labels: map[string]string{
+				"pipeline": "github-octocat-1",
+			},
+		},
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Pod",
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:            "step-github-octocat-1-clone-clone",
+					Image:           "target/vela-git:v0.4.0",
+					WorkingDir:      "/vela/src/github.com/octocat/helloworld",
+					ImagePullPolicy: v1.PullAlways,
+				},
+				{
+					Name:            "step-github-octocat-1-echo-echo",
+					Image:           "alpine:latest",
+					WorkingDir:      "/vela/src/github.com/octocat/helloworld",
+					ImagePullPolicy: v1.PullAlways,
+				},
+				{
+					Name:            "service-github-octocat-1-postgres",
+					Image:           "postgres:12-alpine",
+					WorkingDir:      "/vela/src/github.com/octocat/helloworld",
+					ImagePullPolicy: v1.PullAlways,
+				},
+			},
+			HostAliases: []v1.HostAlias{
+				{
+					IP: "127.0.0.1",
+					Hostnames: []string{
+						"postgres.local",
+						"echo.local",
+					},
+				},
+			},
+			Volumes: []v1.Volume{
+				{
+					Name: "github-octocat-1",
+					VolumeSource: v1.VolumeSource{
+						EmptyDir: &v1.EmptyDirVolumeSource{},
+					},
+				},
 			},
 		},
 	}

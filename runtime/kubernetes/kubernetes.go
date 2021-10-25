@@ -32,6 +32,8 @@ type client struct {
 	Pod *v1.Pod
 	// commonVolumeMounts includes workspace mount and any global host mounts (VELA_RUNTIME_VOLUMES)
 	commonVolumeMounts []v1.VolumeMount
+	// indicates when the pod has been created in kubernetes
+	createdPod bool
 }
 
 // New returns an Engine implementation that
@@ -40,11 +42,11 @@ type client struct {
 // nolint: golint // ignore returning unexported client
 func New(opts ...ClientOpt) (*client, error) {
 	// create new Kubernetes client
-	c := new(client)
+	c := &client{}
 
 	// create new fields
-	c.config = new(config)
-	c.Pod = new(v1.Pod)
+	c.config = &config{}
+	c.Pod = &v1.Pod{}
 
 	// apply all provided configuration options
 	for _, opt := range opts {
@@ -99,11 +101,11 @@ func New(opts ...ClientOpt) (*client, error) {
 // nolint: golint // ignore returning unexported client
 func NewMock(_pod *v1.Pod, opts ...ClientOpt) (*client, error) {
 	// create new Kubernetes client
-	c := new(client)
+	c := &client{}
 
 	// create new fields
-	c.config = new(config)
-	c.Pod = new(v1.Pod)
+	c.config = &config{}
+	c.Pod = &v1.Pod{}
 
 	// set the Kubernetes namespace in the runtime client
 	c.config.Namespace = "test"

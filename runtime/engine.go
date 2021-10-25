@@ -21,6 +21,21 @@ type Engine interface {
 	// the configured runtime driver.
 	Driver() string
 
+	// Build Engine Interface Functions
+
+	// InspectBuild defines a function that
+	// displays details about the build for the init step.
+	InspectBuild(ctx context.Context, b *pipeline.Build) ([]byte, error)
+	// SetupBuild defines a function that
+	// prepares the pipeline build.
+	SetupBuild(context.Context, *pipeline.Build) error
+	// AssembleBuild defines a function that
+	// finalizes pipeline build setup.
+	AssembleBuild(context.Context, *pipeline.Build) error
+	// RemoveBuild defines a function that deletes
+	// (kill, remove) the pipeline build metadata.
+	RemoveBuild(context.Context, *pipeline.Build) error
+
 	// Container Engine Interface Functions
 
 	// InspectContainer defines a function that inspects
